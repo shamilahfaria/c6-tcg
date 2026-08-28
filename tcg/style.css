@@ -1,12 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap");
 /* Base + battle board. Owned by the board-layout work.
    The board mirrors Pokémon TCG Pocket's battle screen: a vertical stadium designed at 1280×720 (.board), zoomed to the window by board.js fit().
    Palette (Gauntlet dark): charcoal #0e1016 → #171a24, gold #c9a227 (highlight #e3c25a → #b8891c), white accents. Palette/texture only — layout lives untouched. */
-body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; font: 15px/1.3 system-ui, sans-serif; text-align: center; }
+body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; font: 15px/1.3 Fredoka, Nunito, system-ui, sans-serif; text-align: center; }
 .row { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; margin: 8px 0; }
 
 /* ---- arena: dark charcoal, Gauntlet gold + white ---- */
 .arena { position: fixed; left: 0; top: 0; overflow: hidden; user-select: none; display: grid; place-items: center; color: #f3efe4;
-  font-family: Nunito, "Trebuchet MS", system-ui, sans-serif;
+  font-family: Fredoka, Fredoka, Nunito, system-ui, sans-serif;
   background: radial-gradient(ellipse 60% 40% at 50% 0%, #c9a2271f, transparent), radial-gradient(ellipse 60% 40% at 50% 100%, #ffffff0d, transparent), linear-gradient(180deg, #0e1016, #171a24 50%, #0e1016); }
 .arena img { -webkit-user-drag: none; }
 .board { position: relative; width: 1280px; height: 720px; }
@@ -36,7 +37,7 @@ body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; 
 .fc { position: relative; border-radius: 12px; box-shadow: 0 10px 24px #000c; }
 .fc .card .hp, .fc .card .energy { display: none; } /* fallback until card.js honours { inplay } */
 .hpf { position: absolute; right: -16px; top: -36px; text-align: right; pointer-events: none; z-index: 3; }
-.hpf b { display: block; font: 900 52px/1 Nunito, "Trebuchet MS", system-ui; color: #fff; -webkit-text-stroke: 4px #0e1016; paint-order: stroke fill; letter-spacing: -1px; }
+.hpf b { display: block; font: 900 52px/1 Fredoka, Fredoka, Nunito, system-ui; color: #fff; -webkit-text-stroke: 4px #0e1016; paint-order: stroke fill; letter-spacing: -1px; }
 .hpf i { display: block; width: 100px; height: 13px; margin-left: auto; border-radius: 7px; background: #0e1016e6; overflow: hidden; box-shadow: 0 0 0 1px #ffffff40, 0 1px 3px #000a; }
 .hpf u { display: block; height: 100%; border-radius: 7px; background: linear-gradient(#8ff0a4, #35d05a); }
 .hpf.low u { background: linear-gradient(#ff9a8a, #e8442e); }
@@ -52,13 +53,13 @@ body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; 
 .deck.op { left: 316px; top: 210px; } .deck.me { left: 900px; top: 404px; }
 .deck .cw { position: absolute; left: 0; top: 0; zoom: .3; }
 .deck .cw:nth-child(2) { left: 5px; top: -5px; } .deck .cw:nth-child(3) { left: 10px; top: -10px; }
-.deck b, .ophand b { position: absolute; right: -12px; bottom: -10px; background: #0e1016f2; color: #fff; border-radius: 12px; padding: 2px 9px; font: 800 13px Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a227, 0 2px 6px #000a; }
+.deck b, .ophand b { position: absolute; right: -12px; bottom: -10px; background: #0e1016f2; color: #fff; border-radius: 12px; padding: 2px 9px; font: 800 13px Fredoka, Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a227, 0 2px 6px #000a; }
 .ophand { position: absolute; left: 50%; top: -44px; transform: translateX(-50%); display: flex; height: 92px; z-index: 4; }
 .ophand .cw { zoom: .3; margin-left: -150px; } .ophand .cw:first-child { margin-left: 0; }
 .ophand b { top: 46px; bottom: auto; } /* clear of the message pill */
 
 /* names + point circles: dark glass bars anchored to the screen corners like Pocket */
-.who { position: absolute; display: flex; align-items: center; gap: 16px; padding: 8px 26px; background: #0e1016b3; backdrop-filter: blur(8px); color: #fff; font: 800 18px Nunito, system-ui; z-index: 15; box-shadow: inset 0 0 0 1px #c9a22799; }
+.who { position: absolute; display: flex; align-items: center; gap: 16px; padding: 8px 26px; background: #0e1016b3; backdrop-filter: blur(8px); color: #fff; font: 800 18px Fredoka, Nunito, system-ui; z-index: 15; box-shadow: inset 0 0 0 1px #c9a22799; }
 .who.op { right: 0; top: 60px; padding-right: 40px; border-radius: 26px 0 0 26px; }
 .who.me { left: 0; bottom: 10px; padding-left: 40px; border-radius: 0 26px 26px 0; }
 .pts { display: inline-flex; gap: 8px; }
@@ -67,13 +68,13 @@ body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; 
 
 /* message pill, "going first" pill, turn counter, End Turn / Battle! pill — dark glass, gold line, white text; the action pill is gold */
 .msg { position: absolute; left: 50%; top: 24px; transform: translateX(-50%); min-width: 400px; max-width: 620px; box-sizing: border-box; padding: 11px 30px 11px 58px;
-  border-radius: 32px; background: #0e1016b3; backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px #c9a227, 0 4px 16px #000a; font: 700 19px/1.25 Nunito, system-ui; color: #fff; text-align: left; z-index: 20; }
+  border-radius: 32px; background: #0e1016b3; backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1px #c9a227, 0 4px 16px #000a; font: 700 19px/1.25 Fredoka, Nunito, system-ui; color: #fff; text-align: left; z-index: 20; }
 .msg i { position: absolute; left: 18px; top: 50%; width: 26px; height: 26px; margin-top: -13px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3b0, #e3c25a 55%, #b8891c); box-shadow: 0 0 10px #e3c25a80; }
 .first, .turn { position: absolute; left: 50%; top: 92px; transform: translateX(-50%); padding: 6px 28px; border-radius: 22px; white-space: nowrap; z-index: 20; }
-.first { background: #0e1016b3; backdrop-filter: blur(8px); color: #e3c25a; font: 800 18px Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a227, 0 3px 10px #000a; }
-.turn { background: #0e1016b3; backdrop-filter: blur(8px); color: #fff; font: 700 15px Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a22799; }
+.first { background: #0e1016b3; backdrop-filter: blur(8px); color: #e3c25a; font: 800 18px Fredoka, Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a227, 0 3px 10px #000a; }
+.turn { background: #0e1016b3; backdrop-filter: blur(8px); color: #fff; font: 700 15px Fredoka, Nunito, system-ui; box-shadow: inset 0 0 0 1px #c9a22799; }
 .turn b { font-size: 20px; margin-left: 6px; }
-.pill { font: 800 20px Nunito, system-ui; padding: 10px 36px; border-radius: 30px; border: 3px solid #c9a227; background: #0e1016d9; backdrop-filter: blur(8px); color: #fff; cursor: pointer;
+.pill { font: 800 20px Fredoka, Nunito, system-ui; padding: 10px 36px; border-radius: 30px; border: 3px solid #c9a227; background: #0e1016d9; backdrop-filter: blur(8px); color: #fff; cursor: pointer;
   box-shadow: 0 0 0 1px #ffffff1f, 0 4px 16px #000a; transition: transform .1s; }
 .pill:hover { transform: scale(1.04); background: #1c1f2a; border-color: #e3c25a; }
 .pill.sm { font-size: 16px; padding: 8px 22px; border-color: #ffffffb3; }

@@ -7,7 +7,7 @@
 .fx-banner { left: 0; right: 0; top: 50%; height: 84px; transform: translateY(-50%); display: grid; place-items: center; overflow: hidden;
   background: linear-gradient(90deg, #0000, #0c0e14e6 20%, #0c0e14e6 80%, #0000); border-top: 1px solid #ffcc3366; border-bottom: 1px solid #ffcc3366;
   animation: fx-banner var(--t) ease-in-out both; }
-.fx-banner span { font: 800 34px/1 system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffcc33;
+.fx-banner span { font: 800 34px/1 Fredoka, Nunito, system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffcc33;
   background: linear-gradient(180deg, #fff3b0, #ffcc33 55%, #c98d00); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 2px 0 #4a3200) drop-shadow(0 0 12px #ffcc3355); animation: fx-banner-text var(--t) cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes fx-banner { 0% { clip-path: inset(0 100% 0 0); } 18% { clip-path: inset(0); } 80% { clip-path: inset(0); opacity: 1; } 100% { clip-path: inset(0 0 0 100%); opacity: 0; } }
@@ -23,7 +23,7 @@
 .fx-coin .f.t { transform: rotateY(180deg); background-image: url(assets/shield.png), radial-gradient(circle at 38% 32%, #3a3d46, #14161c 55%, #08090c); background-size: 46% auto, 100% 100%; background-position: center 50%, center; background-repeat: no-repeat; filter: grayscale(1) brightness(.55); }
 .fx-coin .f.t::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; border: 2px solid #c9a22766; }
 .fx-coin .shadow { position: absolute; left: 15%; right: 15%; bottom: -34px; height: 18px; border-radius: 50%; background: #000; filter: blur(8px); opacity: .5; animation: fx-toss-shadow calc(var(--t) * .58) ease-out both; }
-.fx-coin .lbl { justify-self: center; font: 800 30px/1 system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #ffcc33; text-shadow: 0 2px 8px #000;
+.fx-coin .lbl { justify-self: center; font: 800 30px/1 Fredoka, Nunito, system-ui, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #ffcc33; text-shadow: 0 2px 8px #000;
   opacity: 0; animation: fx-pop calc(var(--t) * .42) calc(var(--t) * .58) ease-out both; }
 .fx-coin.tails .lbl { color: #ddd; }
 @keyframes fx-spin { from { transform: rotateY(0) } to { transform: rotateY(1800deg) } }
@@ -45,7 +45,7 @@
 .fx-hit { z-index: 9002; }
 .fx-hit .flash { position: absolute; inset: 0; border-radius: 12px; background: #fff; animation: fx-flash calc(var(--t) * .45) ease-out both; }
 .fx-hit.weak .flash { background: #ff3b30; }
-.fx-hit .num { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font: 900 44px/1 system-ui, sans-serif; color: #fff; white-space: nowrap; text-align: center;
+.fx-hit .num { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font: 900 44px/1 Fredoka, Nunito, system-ui, sans-serif; color: #fff; white-space: nowrap; text-align: center;
   text-shadow: 0 0 2px #000, 0 2px 0 #000, 0 0 14px #000; animation: fx-float var(--t) cubic-bezier(.2, .7, .3, 1) both; }
 .fx-hit.weak .num { font-size: 60px; color: #ff4a3d; }
 .fx-hit .num small { display: block; font-size: 20px; letter-spacing: .1em; text-transform: uppercase; color: #ffcc33; margin-top: 4px; }
@@ -55,7 +55,7 @@
 
 /* ko: text over the falling ghost */
 .fx-ko { z-index: 9003; display: grid; place-items: center; }
-.fx-ko b { font: 900 54px/1 system-ui, sans-serif; letter-spacing: .06em; color: #ff3b30; -webkit-text-stroke: 2px #fff; text-shadow: 0 3px 0 #000, 0 0 20px #000; animation: fx-ko var(--t) ease-out both; }
+.fx-ko b { font: 900 54px/1 Fredoka, Nunito, system-ui, sans-serif; letter-spacing: .06em; color: #ff3b30; -webkit-text-stroke: 2px #fff; text-shadow: 0 3px 0 #000, 0 0 20px #000; animation: fx-ko var(--t) ease-out both; }
 @keyframes fx-ko { 0% { opacity: 0; transform: scale(2.5) rotate(-8deg) } 25% { opacity: 1; transform: scale(1) rotate(-8deg) } 80% { opacity: 1 } 100% { opacity: 0 } }
 
 /* energy: orb flies from the Energy Zone (bottom-right) to the card, then bursts */
