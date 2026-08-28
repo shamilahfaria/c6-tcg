@@ -6,6 +6,7 @@
 window.TYPES = {
   fire: { label: "Frontend", icon: "🔥" }, water: { label: "Data", icon: "💧" }, grass: { label: "ML", icon: "🌿" },
   electric: { label: "Infra", icon: "⚡" }, psychic: { label: "Agents", icon: "🔮" }, fighting: { label: "Evals", icon: "🥊" },
+  normal: { label: "Staff", icon: "⭐" }, // colorless: staff cards fill any deck up to 12 people; costs are any-energy only
 };
 window.COMMON = {
   fire: { name: "Hot Reload", cost: { t: 1 }, dmg: 20 },
@@ -14,6 +15,7 @@ window.COMMON = {
   electric: { name: "kubectl apply", cost: { t: 1 }, dmg: 20 },
   psychic: { name: "Tool Call", cost: { t: 1 }, dmg: 20 },
   fighting: { name: "Rubric Check", cost: { t: 1 }, dmg: 20 },
+  normal: { name: "Standup", cost: { c: 1 }, dmg: 20 },
 };
 // Order matches the portal's Guess Who board (left→right, top→bottom), then the three not on the board.
 window.CARDS = [
@@ -105,15 +107,44 @@ window.CARDS = [
   { id: "troy-satchell", name: "Troyager", real: "Troy Satchell", photo: "photos/troy-satchell.jpg", type: "fire", hp: 90,
     sig: { name: "Icon Subset", cost: { t: 1, c: 1 }, dmg: 50, text: "90% smaller payload." },
     flavor: "Solo founder of Clavira. Shrank a design system's icon fonts by 90% and shipped it to 7 teams." },
+  // Gauntlet staff as colorless cards (deck filler). Names are Pokémon-style; no invented biographies.
+  { id: "jevic", name: "Jevichu", real: "Jevic (staff)", photo: "photos/staff-jevic.jpg", type: "normal", hp: 90,
+    sig: { name: "Cohort Announcement", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "zac", name: "Zacrow", real: "Zac (staff)", photo: "photos/staff-zac.jpg", type: "normal", hp: 100,
+    sig: { name: "Whiteboard Session", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "aaron", name: "Aaronaut", real: "Aaron (staff)", photo: "photos/staff-aaron.jpg", type: "normal", hp: 90,
+    sig: { name: "Pair Programming", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "sara", name: "Sarasaur", real: "Sara (staff)", photo: "photos/staff-sara.jpg", type: "normal", hp: 100,
+    sig: { name: "Feedback Loop", cost: { c: 2 }, dmg: 40, text: "Heals 20 from itself." , heal: 20 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "brett", name: "Brettle", real: "Brett (staff)", photo: "photos/staff-brett.jpg", type: "normal", hp: 90,
+    sig: { name: "Deadline Extension", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "arial", name: "Arialune", real: "Arial (staff)", photo: "photos/staff-arial.jpg", type: "normal", hp: 90,
+    sig: { name: "Slack Reminder", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "rebecca", name: "Rebechu", real: "Rebecca (staff)", photo: "photos/staff-rebecca.jpg", type: "normal", hp: 90,
+    sig: { name: "Interview Prep", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "derek", name: "Derekrow", real: "Derek (staff)", photo: "photos/staff-derek.jpg", type: "normal", hp: 100,
+    sig: { name: "Code Review", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "andria", name: "Andriaz", real: "Andria (staff)", photo: "photos/staff-andria.jpg", type: "normal", hp: 90,
+    sig: { name: "Attendance Check", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
 ];
-// Trainer cards. Items: any number per turn. Supporters: one per turn. Staff supporters can be added here with a `photo`.
+// Trainer cards. Items: any number per turn. Supporters: one per turn. `effect` is interpreted in index.html.
+// Staff supporters carry a photo; the five unnamed people on the STAFF board are deliberately left out. Other staff are colorless cards above.
 window.TRAINERS = [
-  { id: "coffee", kind: "item", name: "Coffee", text: "Heal 20 damage from your active card." },
-  { id: "slack-ping", kind: "item", name: "Slack Ping", text: "Put a random person from your deck into your hand." },
-  { id: "hotfix", kind: "item", name: "Hotfix", text: "This turn, your active card's retreat cost is 1 less." },
-  { id: "weekly-writeup", kind: "supporter", name: "Weekly Writeup", text: "Draw 2 cards." },
-  { id: "demo-day", kind: "supporter", name: "Demo Day", text: "This turn, your attacks do +10 damage." },
-  { id: "hiring-partner-intro", kind: "supporter", name: "Hiring Partner Intro", text: "Your opponent switches their active card with a benched one." },
-  { id: "office-hours", kind: "supporter", name: "Office Hours", text: "Heal 50 damage from your active card." },
-  { id: "stipend", kind: "supporter", name: "Stipend", text: "Attach 1 extra energy of your type to your active card." },
+  { id: "coffee", kind: "item", name: "Coffee", effect: "heal20", text: "Heal 20 damage from your active card." },
+  { id: "slack-ping", kind: "item", name: "Slack Ping", effect: "ball", text: "Put a random person from your deck into your hand." },
+  { id: "hotfix", kind: "item", name: "Hotfix", effect: "hotfix", text: "This turn, your active card's retreat cost is 1 less." },
+  { id: "weekly-writeup", kind: "supporter", name: "Weekly Writeup", effect: "draw2", text: "Draw 2 cards." },
+  { id: "demo-day", kind: "supporter", name: "Demo Day", effect: "plus10", text: "This turn, your attacks do +10 damage." },
+  { id: "hiring-partner-intro", kind: "supporter", name: "Hiring Partner Intro", effect: "sabrina", text: "Your opponent switches their active card with a benched one." },
+  { id: "office-hours", kind: "supporter", name: "Office Hours", effect: "heal50", text: "Heal 50 damage from your active card." },
+  { id: "stipend", kind: "supporter", name: "Stipend", effect: "energy", text: "Attach 1 energy of your type to your active card." },
+  // Gauntlet staff
+  { id: "austen", kind: "supporter", staff: true, name: "Austen", photo: "photos/staff-austen.jpg", effect: "draw3", text: "Draw 3 cards." },
+  { id: "ash", kind: "supporter", staff: true, name: "Ash", photo: "photos/staff-ash.jpg", effect: "plus10", text: "This turn, your attacks do +10 damage. Gotta be the very best." },
+  { id: "byron", kind: "supporter", staff: true, name: "Byron", photo: "photos/staff-byron.jpg", effect: "shield", text: "During your opponent's next turn, your active card takes 20 less damage." },
+  { id: "holdy", kind: "supporter", staff: true, name: "Holdy", photo: "photos/staff-holdy.jpg", effect: "flipEnergy", text: "Flip a coin until tails. For each heads, attach 1 energy of your type to your active card." },
+  { id: "tom", kind: "supporter", staff: true, name: "Tom", photo: "photos/staff-tom.jpg", effect: "heal50", text: "Heal 50 damage from your active card." },
+  { id: "tom-2", kind: "supporter", staff: true, name: "Tom", photo: "photos/staff-tom-2.jpg", effect: "moveEnergy", text: "Move 1 energy from each of your benched cards to your active card." },
+  { id: "drew", kind: "supporter", staff: true, name: "Drew", photo: "photos/staff-drew.jpg", effect: "draw2", text: "Drew draws. Draw 2 cards." },
+  { id: "matthew-poole", kind: "supporter", staff: true, name: "Matthew Poole", photo: "photos/staff-matthew-poole.jpg", effect: "sabrina", text: "Hiring partner intro: your opponent switches their active card with a benched one." },
 ];

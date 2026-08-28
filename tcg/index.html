@@ -25,6 +25,7 @@
   .card.electric { --c1: #fff3a0; --c2: #e8b800; }
   .card.psychic  { --c1: #e2b6ff; --c2: #8a3fc8; }
   .card.fighting { --c1: #f0c8a0; --c2: #a86428; }
+  .card.normal   { --c1: #e8e8f0; --c2: #8c8ca8; }
   .hd { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; white-space: nowrap; } .hd span + span { font-size: 12px; }
   .bar { height: 6px; background: #0003; border-radius: 3px; } .bar i { display: block; height: 100%; background: #2ecc40; border-radius: 3px; }
   .pic { width: 100%; height: 120px; border-radius: 6px; background: #fff6; border: 3px solid #fff8; box-sizing: border-box; display: grid; place-items: center;
@@ -46,7 +47,8 @@
   .trainer { width: 120px; min-height: 80px; box-sizing: border-box; padding: 8px; border-radius: 8px; text-align: left; color: #111; background: #e8e2c8; border: 4px solid #d8cfa8; font-size: 12px; }
   .trainer.supporter { background: #ffd9a8; border-color: #e5b878; }
   .trainer b { display: block; font-size: 13px; } .trainer small { color: #666; text-transform: uppercase; font-size: 9px; letter-spacing: .1em; }
-  .trainer p { margin: 4px 0 0; } .pickable.trainer:hover { outline: 3px solid #ffcc33; }
+  .trainer p { margin: 4px 0 0; }
+  .trainer img { display: block; width: 100%; height: 72px; object-fit: cover; object-position: 50% 25%; border-radius: 4px; margin-bottom: 4px; } .pickable.trainer:hover { outline: 3px solid #ffcc33; }
   .zone { position: fixed; right: 16px; bottom: 16px; background: #22262f; border: 1px solid #444; border-radius: 12px; padding: 10px 14px; text-align: left; font-size: 13px; color: #aaa; }
   .zone .cur { font-size: 34px; line-height: 1; color: #fff; }
   .zone .dim { opacity: .35; }
@@ -110,7 +112,7 @@ function cardHTML(c, o = {}) {
   </div>`;
 }
 function trainerHTML(t, o = {}) {
-  return `<div class="trainer ${t.kind} ${o.cls || ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}><b>${t.name}</b><small>${t.kind}</small><p>${t.text}</p></div>`;
+  return `<div class="trainer ${t.kind} ${t.staff ? "staff" : ""} ${o.cls || ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}>${t.photo ? `<img src="${t.photo}" alt="">` : ""}<b>${t.name}</b><small>${t.staff ? "staff · " : ""}${t.kind}</small><p>${t.text}</p></div>`;
 }
 function handHTML(s, mine) {
   return s.hand.map((c, i) => c.sig
@@ -134,8 +136,8 @@ function typePick() {
 }
 function renderTypePick() {
   const n = CARDS.filter(c => picked.includes(c.type)).length;
-  app.innerHTML = `<h2>Build your deck: pick 1 or 2 energy types</h2><p class="hint">Your Energy Zone only makes these types. The deck fills with up to 2 copies of each person of those types, plus Gauntlet trainers.</p>
-    <div class="typepick">${Object.keys(TYPES).map(t => `<button class="${picked.includes(t) ? "on" : ""}" onclick="togglePick('${t}')">${typeOf(t)} <small>(${CARDS.filter(c => c.type === t).length})</small></button>`).join("")}</div>
+  app.innerHTML = `<h2>Build your deck: pick 1 or 2 energy types</h2><p class="hint">Your Energy Zone only makes these types. Every deck is 12 people + 8 trainers: your types first, ⭐ Staff cards fill the rest.</p>
+    <div class="typepick">${Object.keys(TYPES).filter(t => t !== "normal").map(t => `<button class="${picked.includes(t) ? "on" : ""}" onclick="togglePick('${t}')">${typeOf(t)} <small>(${CARDS.filter(c => c.type === t).length})</small></button>`).join("")}</div>
     <p><button class="big" onclick="start()" ${picked.length ? "" : "disabled"}>Shuffle up & play${picked.length ? ` (${n} people)` : ""}</button></p>`;
 }
 function togglePick(t) {
@@ -178,7 +180,7 @@ function begin() { G.phase = "play"; beginTurn(G.first); }
 
 function beginTurn(who) {
   G.who = who; G.turn++;
-  const s = G[who]; Object.assign(s, { attached: false, supporter: false, retreated: false, bonus: 0, hotfix: 0 });
+  const s = G[who]; Object.assign(s, { attached: false, supporter: false, retreated: false, bonus: 0, hotfix: 0, shield: 0 });
   const opening = G.turn === 1;
   if (opening) { s.energyNext = null; log(`${name(who)} go${who === "me" ? "" : "es"} first: no draw, no energy this turn.`); }
   else { draw(s); s.energyNext = rnd(s.types); log(`${name(who)} drew a card. Energy Zone: ${icon(s.energyNext)}.`); }
@@ -197,7 +199,7 @@ function playCard(i) {
   if (!myTurn()) return;
   const s = G.me, c = s.hand[i];
   if (c.sig) { if (!s.active) s.active = inst(c); else if (s.bench.length < 3) s.bench.push(inst(c)); else return; log(`You played ${c.name}.`); }
-  else if (!applyTrainer(s, G.op, c, "You")) return;
+  else if (!applyTrainer("me", c)) return;
   s.hand.splice(i, 1); render();
 }
 function attach(i) { // i = -1 active, else bench index
@@ -230,10 +232,12 @@ function attack(i) {
 // ---------- rules ----------
 function resolve(who, m) {
   const A = G[who], D = G[other(who)], a = A.active, d = D.active;
+  if (!a || !d) return;
   if (m.flip && Math.random() < .5) { log(`${a.name} used ${m.name}... tails. Nothing happens.`); return; }
-  const r = damage(a, d, m, A.bonus); d.hp = r.hp;
-  log(`${a.name} used ${m.name}! ${r.weak ? "Weakness, +20! " : ""}${A.bonus ? "Demo Day +10! " : ""}${r.dmg} damage.`);
+  const r = damage(a, d, m, A.bonus), dmg = Math.max(0, r.dmg - (D.shield || 0)); d.hp = Math.max(0, d.hp - dmg);
+  log(`${a.name} used ${m.name}! ${r.weak ? "Weakness, +20! " : ""}${A.bonus ? "+10! " : ""}${D.shield ? "Shielded, -20. " : ""}${dmg} damage.`);
   if (m.self) a.hp = Math.max(0, a.hp - m.self);
+  if (m.heal) a.hp = Math.min(a.max, a.hp + m.heal);
   if (d.hp === 0) ko(other(who), who);
   if (a.hp === 0 && G.phase !== "over") ko(who, other(who));
 }
@@ -246,23 +250,35 @@ function ko(loserWho, scorerWho) {
   if (loserWho === "op") { L.bench.sort((x, y) => y.hp - x.hp); L.active = L.bench.shift(); log(`${L.active.name} steps in.`); }
   else G.phase = "promote";
 }
-function applyTrainer(s, o, t, who) {
-  const heal = n => { if (!s.active || s.active.hp === s.active.max) return false; s.active.hp = Math.min(s.active.max, s.active.hp + n); return true; };
+function applyTrainer(who, t) {
+  const s = G[who], o = G[other(who)];
+  const heal = (c, n) => { if (!c || c.hp === c.max) return false; c.hp = Math.min(c.max, c.hp + n); return true; };
+  const give = n => { for (let i = 0; i < n; i++) s.active.energy.push(rnd(s.types)); };
   if (t.kind === "supporter" && s.supporter) return false;
-  let ok = true;
-  switch (t.id) {
-    case "coffee": ok = heal(20); break;
-    case "office-hours": ok = heal(50); break;
-    case "slack-ping": { const i = s.deck.findIndex(c => c.sig); if (i < 0) ok = false; else s.hand.push(s.deck.splice(i, 1)[0]); break; }
+  if (!s.active) return false;
+  let ok = true, note = "";
+  switch (t.effect) {
+    case "heal20": ok = heal(s.active, 20); break;
+    case "heal50": ok = heal(s.active, 50); break;
+    case "heal20all": ok = [s.active, ...s.bench].map(c => heal(c, 20)).some(Boolean); break;
+    case "ball": { const i = s.deck.findIndex(c => c.sig); if (i < 0) ok = false; else s.hand.push(s.deck.splice(i, 1)[0]); break; }
     case "hotfix": s.hotfix = 1; break;
-    case "weekly-writeup": ok = s.deck.length > 0; draw(s, 2); break;
-    case "demo-day": s.bonus = 10; break;
-    case "hiring-partner-intro": { if (!o.bench.length) { ok = false; break; } const i = Math.floor(Math.random() * o.bench.length); [o.active, o.bench[i]] = [o.bench[i], o.active]; break; }
-    case "stipend": ok = !!s.active; if (ok) s.active.energy.push(rnd(s.types)); break;
+    case "retreatFree": s.hotfix = 9; break;
+    case "draw2": ok = s.deck.length > 0; draw(s, 2); break;
+    case "draw3": ok = s.deck.length > 0; draw(s, 3); break;
+    case "plus10": s.bonus = 10; break;
+    case "shield": s.shield = 20; break;
+    case "energy": give(1); break;
+    case "flipEnergy": { let n = 0; while (Math.random() < .5) n++; give(n); note = ` ${n} heads.`; break; }
+    case "moveEnergy": ok = s.bench.some(c => c.energy.length); s.bench.forEach(c => { if (c.energy.length) s.active.energy.push(c.energy.pop()); }); break;
+    case "sabrina": { if (!o.bench.length) { ok = false; break; } const i = Math.floor(Math.random() * o.bench.length); [o.active, o.bench[i]] = [o.bench[i], o.active]; note = ` ${o.active.name} is dragged in.`; break; }
+    case "redcard": { o.deck = shuffle(o.deck.concat(o.hand)); o.hand = []; draw(o, 3); break; }
+    case "dmg20": { o.active.hp = Math.max(0, o.active.hp - 20); break; }
   }
   if (!ok) return false;
   if (t.kind === "supporter") s.supporter = true;
-  log(`${who} played ${t.name}.`);
+  log(`${name(who)} played ${t.name}.${note}`);
+  if (t.effect === "dmg20" && o.active.hp === 0) ko(other(who), who);
   return true;
 }
 function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; render(); }
@@ -276,11 +292,14 @@ function aiTurn() {
     s.hand.splice(s.hand.indexOf(c), 1); log(`Opponent played ${c.name}.`);
   });
   // items, then one supporter
-  s.hand.filter(c => c.kind === "item").forEach(t => { if (t.id === "hotfix") return; if (applyTrainer(s, me, t, "Opponent")) s.hand.splice(s.hand.indexOf(t), 1); });
-  const want = t => ({ "office-hours": s.active.hp <= s.active.max - 50, "weekly-writeup": s.hand.length <= 2, "stipend": !canPay(s.active, s.active.sig.cost),
-    "demo-day": canPay(s.active, s.active.sig.cost), "hiring-partner-intro": me.bench.length > 0 && Math.random() < .3 })[t.id];
-  const sup = s.hand.find(c => c.kind === "supporter" && want(c));
-  if (sup && applyTrainer(s, me, sup, "Opponent")) s.hand.splice(s.hand.indexOf(sup), 1);
+  s.hand.filter(c => c.kind === "item").forEach(t => { if (t.effect === "hotfix") return; if (applyTrainer("op", t)) s.hand.splice(s.hand.indexOf(t), 1); });
+  const ready = canPay(s.active, s.active.sig.cost), hurt = s.active.max - s.active.hp;
+  const want = { heal50: hurt >= 50, heal20all: hurt >= 20, draw2: s.hand.length <= 2, draw3: s.hand.length <= 3, energy: !ready, flipEnergy: !ready,
+    moveEnergy: !ready && s.bench.some(c => c.energy.length), plus10: ready, sabrina: me.bench.length > 0 && Math.random() < .3,
+    shield: Math.random() < .5, redcard: me.hand.length >= 4, dmg20: true, retreatFree: false };
+  const sup = s.hand.find(c => c.kind === "supporter" && want[c.effect]);
+  if (sup && applyTrainer("op", sup)) s.hand.splice(s.hand.indexOf(sup), 1);
+  if (G.phase === "over") return;
   // energy: active until it can use its signature, then the bench card closest to its signature, then active
   if (s.energyNext) {
     const target = !canPay(s.active, s.active.sig.cost) ? s.active : (s.bench.find(c => !canPay(c, c.sig.cost)) || s.active);
@@ -288,8 +307,10 @@ function aiTurn() {
   }
   render();
   later(() => {
-    const best = moves(s.active).reduce((x, y) => ev(s.active, me.active, y, s.bonus) > ev(s.active, me.active, x, s.bonus) ? y : x);
-    if (ev(s.active, me.active, best, s.bonus) > 0) resolve("op", best); else log("Opponent ends the turn.");
+    if (me.active) {
+      const best = moves(s.active).reduce((x, y) => ev(s.active, me.active, y, s.bonus) > ev(s.active, me.active, x, s.bonus) ? y : x);
+      if (ev(s.active, me.active, best, s.bonus) > 0) resolve("op", best); else log("Opponent ends the turn.");
+    }
     render();
     later(endTurn, 1100);
   }, 900);

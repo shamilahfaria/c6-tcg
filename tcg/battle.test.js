@@ -20,15 +20,19 @@ assert.strictEqual(damage(water, { type: "fire", hp: 55 }, { dmg: 30 }, 10).hp, 
 // ev: unaffordable = 0, flip halves
 assert.strictEqual(ev(fire, water, { cost: { t: 3 }, dmg: 100 }), 0);
 assert.strictEqual(ev(fire, water, { cost: { t: 2 }, dmg: 70, flip: true }), 35);
-// points and weakness cycle
+// points; every type's weakness is a real type; colorless cards pay with anything
 assert.strictEqual(points({ ex: true }), 2); assert.strictEqual(points({}), 1);
-assert.deepStrictEqual(Object.keys(WEAK).sort(), Object.values(WEAK).sort());
+Object.values(WEAK).forEach(w => assert.ok(WEAK[w], w));
+assert.ok(canPay({ type: "normal", energy: ["fire", "water"] }, { c: 2 }));
 // deck: 20 cards, ≤2 copies, only chosen types, at least one person
 let i = 0; const rand = () => ((i += 7) % 11) / 11;
 const deck = buildDeck(["fire"], CARDS, TRAINERS, rand);
 assert.strictEqual(deck.length, 20);
 const people = deck.filter(c => c.sig);
-assert.ok(people.length >= 8 && people.every(c => c.type === "fire"));
+assert.strictEqual(people.length, 12); assert.ok(people.every(c => c.type === "fire"));
+// a thin type still gets 12 people: the rest are colorless staff
+const thin = buildDeck(["grass"], CARDS, TRAINERS, rand).filter(c => c.sig);
+assert.strictEqual(thin.length, 12); assert.ok(thin.every(c => c.type === "grass" || c.type === "normal")); assert.ok(thin.some(c => c.type === "normal"));
 const counts = {}; deck.forEach(c => counts[c.id] = (counts[c.id] || 0) + 1);
 assert.ok(Object.values(counts).every(n => n <= 2));
 // data sanity: every card has a common move for its type and a signature with a cost
