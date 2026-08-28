@@ -147,4 +147,5 @@ window.TRAINERS = [
   { id: "tom-2", kind: "supporter", staff: true, name: "Tom", photo: "photos/staff-tom-2.jpg", effect: "moveEnergy", text: "Move 1 energy from each of your benched cards to your active card." },
   { id: "drew", kind: "supporter", staff: true, name: "Drew", photo: "photos/staff-drew.jpg", effect: "draw2", text: "Drew draws. Draw 2 cards." },
   { id: "matthew-poole", kind: "supporter", staff: true, name: "Matthew Poole", photo: "photos/staff-matthew-poole.jpg", effect: "sabrina", text: "Hiring partner intro: your opponent switches their active card with a benched one." },
+  { id: "jon-lucas", kind: "supporter", staff: true, name: "Jon Lucas", photo: "photos/staff-jon-lucas.jpg", effect: "retreatFree", text: "Demo Day walk-on: this turn, your active card's retreat cost is 0." },
 ];
