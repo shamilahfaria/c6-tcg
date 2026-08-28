@@ -49,8 +49,9 @@ function beginTurn(who) {
   const s = G[who]; Object.assign(s, { attached: false, supporter: false, retreated: false, bonus: 0, hotfix: 0, shield: 0 });
   const opening = G.turn === 1;
   FX.banner(who === "me" ? "Your turn" : "Opponent's turn");
-  if (opening) { s.energyNext = null; log(`${name(who)} go${who === "me" ? "" : "es"} first: no draw, no energy this turn.`); }
-  else { draw(s); s.energyNext = s.energyPreview || rnd(s.types); s.energyPreview = rnd(s.types); log(`${name(who)} drew a card. Energy Zone: ${icon(s.energyNext)}.`); }
+  draw(s); // Pocket: every turn starts with a draw
+  if (opening) { s.energyNext = null; log(`${name(who)} go${who === "me" ? "" : "es"} first: drew a card, no energy this turn.`); }
+  else { s.energyNext = s.energyPreview || rnd(s.types); s.energyPreview = rnd(s.types); log(`${name(who)} drew a card. Energy Zone: ${icon(s.energyNext)}.`); }
   render();
   if (who === "op") setTimeout(aiTurn, 900);
 }
