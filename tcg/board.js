@@ -32,6 +32,13 @@ function playTrainer(i) { // Pocket: the trainer is shown big in the centre for 
 
 function quit() { G.phase = "over"; UI.menu = false; try { FX.music.stop(); } catch {} } // leaving mid-battle: "over" is what the engine's AI timers check before acting, so nothing re-renders the board later
 
+// Attack-panel cost pips: energy you have is full color, energy you still need is faded (Pocket-style).
+function costPips(card, cost) {
+  const own = card.energy.filter(e => e === card.type).length, t = cost.t || 0, c = cost.c || 0;
+  const paidT = Math.min(own, t), paidC = Math.min(Math.max(0, card.energy.length - paidT), c);
+  const wrap = (html, ok) => `<span style="${ok ? "" : "opacity:.28;filter:grayscale(1)"}">${html}</span>`;
+  return Array.from({ length: t }, (_, i) => wrap(pip(card.type), i < paidT)).join("") + Array.from({ length: c }, (_, i) => wrap(pip(), i < paidC)).join("");
+}
 function render() {
   const me = G.me, op = G.op, mine = myTurn(), setup = G.phase === "setup", promo = G.phase === "promote";
   const canAttach = mine && me.energyNext && !me.attached;
@@ -70,7 +77,7 @@ function render() {
     <div class="big static">${cardHTML(me.active, { inplay: true })}</div>
     <div class="acts">${mine ? "" : `<div class="wait">Opponent's turn…</div>`}
       ${moves(me.active).map((m, i) => { const ok = mine && canPay(me.active, m.cost); return `<button class="pill atkpill" ${ok ? `onclick="UI.panel=-1;attack(${i})"` : "disabled"} style="display:flex;align-items:center;gap:10px;width:300px;text-align:left;padding:10px 14px;${ok ? "" : "opacity:.45;cursor:default"}">
-        <span class="cost" style="font-size:16px">${pips(m.cost, me.active.type)}</span><span style="flex:1"><b style="font-size:17px">${m.name}</b>${m.flip || m.text || m.self ? `<small style="display:block;font-size:11px;opacity:.75">${[m.flip ? "coin flip" : "", m.self ? `recoil ${m.self}` : "", m.text || ""].filter(Boolean).join(" · ")}</small>` : ""}</span><b style="font-size:22px">${m.dmg}</b></button>`; }).join("")}
+        <span class="cost" style="font-size:16px">${costPips(me.active, m.cost)}</span><span style="flex:1"><b style="font-size:17px">${m.name}</b>${m.flip || m.text || m.self ? `<small style="display:block;font-size:11px;opacity:.75">${[m.flip ? "coin flip" : "", m.self ? `recoil ${m.self}` : "", m.text || ""].filter(Boolean).join(" · ")}</small>` : ""}</span><b style="font-size:22px">${m.dmg}</b></button>`; }).join("")}
       ${canRetreat ? `<button class="pill sm" onclick="UI.retreat=!UI.retreat;render()">Retreat ${pip().repeat(rc) || "· free"}</button>` : ""}
       ${UI.retreat ? `<div class="chooser"><small>Who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;UI.panel=-1;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
       <button class="pill sm" onclick="UI.panel=-1;UI.retreat=false;render()">Close</button></div></div></div>` : "";
