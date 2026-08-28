@@ -36,9 +36,8 @@ function cardHTML(c, o = {}) {
         <div class="hd"><span class="nm">${c.name}${c.ex ? `<em class="exb">ex</em>` : ""}</span>
           <span class="hp ${c.hp < max ? "hurt" : ""}"><small>HP</small>${c.hp}</span><i class="tc ${c.type}">${icon(c.type)}</i></div>
         <div class="pic">${initials}${c.photo ? `<img src="${c.photo}" alt="" onerror="this.remove()">` : ""}
-          ${energy.length ? `<span class="energy">${energy.map(pip).join("")}</span>` : ""}
           ${c.hp < max ? `<div class="bar"><i style="width:${c.hp / max * 100}%"></i></div>` : ""}</div>
-        <div class="type">${typeOf(c.type)}${o.full ? `<span class="real">${c.real}</span>` : ""}</div>
+        <div class="type">${energy.length ? `<span class="energy">${energy.map(pip).join("")}</span>` : ""}${typeOf(c.type)}${o.full ? `<span class="real">${c.real}</span>` : ""}</div>
         <div class="atks">${rows}</div>
         ${o.full ? `<div class="flavor">${c.flavor}</div>` : ""}
         <div class="ft"><span>Weakness ${pip(WEAK[c.type])} +20</span><span>Retreat ${pip().repeat(c.retreat ?? 1) || "—"}</span></div>

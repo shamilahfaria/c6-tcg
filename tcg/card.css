@@ -37,7 +37,7 @@
     font-size: 40px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px #0006; }
 .full .pic { height: 92px; }
 .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-.energy { position: absolute; left: 3px; bottom: 4px; display: flex; flex-wrap: wrap; gap: 1px; max-width: 70%; }
+.energy { display: inline-flex; gap: 1px; margin-right: 6px; vertical-align: middle; }
 .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: #0008; }
 .bar i { display: block; height: 100%; background: #35d05a; }
 
