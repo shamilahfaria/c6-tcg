@@ -143,6 +143,7 @@ function applyTrainer(who, t) {
     case "retreatFree": s.hotfix = 9; break;
     case "draw2": ok = s.deck.length > 0; draw(s, 2); break;
     case "draw3": ok = s.deck.length > 0; draw(s, 3); break;
+    case "draw5": ok = s.deck.length > 0 && s.hand.length < 6; draw(s, Math.max(0, 5 - (s.hand.length - 1))); break;
     case "plus10": s.bonus = 10; break;
     case "shield": s.shield = 20; break;
     case "energy": give(1); break;
@@ -172,7 +173,7 @@ function aiTurn() {
   // items, then one supporter
   s.hand.filter(c => c.kind === "item").forEach(t => { if (t.effect === "hotfix") return; if (applyTrainer("op", t)) s.hand.splice(s.hand.indexOf(t), 1); });
   const ready = canPay(s.active, s.active.sig.cost), hurt = s.active.max - s.active.hp;
-  const want = { heal50: hurt >= 50, heal20all: hurt >= 20, draw2: s.hand.length <= 2, draw3: s.hand.length <= 3, energy: !ready, flipEnergy: !ready,
+  const want = { heal50: hurt >= 50, heal20all: hurt >= 20, draw2: s.hand.length <= 2, draw3: s.hand.length <= 3, draw5: s.hand.length <= 3, energy: !ready, flipEnergy: !ready,
     moveEnergy: !ready && s.bench.some(c => c.energy.length), plus10: ready, sabrina: me.bench.length > 0 && Math.random() < .3,
     shield: Math.random() < .5, redcard: me.hand.length >= 4, dmg20: true, retreatFree: false };
   const sup = s.hand.find(c => c.kind === "supporter" && want[c.effect]);
