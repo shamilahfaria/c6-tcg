@@ -67,8 +67,10 @@ function render() {
     ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="quit();binder()">Binder</button><button class="pill" onclick="quit();window.title()">Home</button></div>` : ""}`;
 
   const apanel = panel ? `<div class="apanel" onclick="if(event.target===this){UI.panel=-1;UI.retreat=false;render()}"><div class="ap">
-    <div class="big">${cardHTML(me.active, { attack: true, busy: !mine })}</div>
+    <div class="big static">${cardHTML(me.active, { inplay: true })}</div>
     <div class="acts">${mine ? "" : `<div class="wait">Opponent's turn…</div>`}
+      ${moves(me.active).map((m, i) => { const ok = mine && canPay(me.active, m.cost); return `<button class="pill atkpill" ${ok ? `onclick="UI.panel=-1;attack(${i})"` : "disabled"} style="display:flex;align-items:center;gap:10px;width:300px;text-align:left;padding:10px 14px;${ok ? "" : "opacity:.45;cursor:default"}">
+        <span class="cost" style="font-size:16px">${pips(m.cost, me.active.type)}</span><span style="flex:1"><b style="font-size:17px">${m.name}</b>${m.flip || m.text || m.self ? `<small style="display:block;font-size:11px;opacity:.75">${[m.flip ? "coin flip" : "", m.self ? `recoil ${m.self}` : "", m.text || ""].filter(Boolean).join(" · ")}</small>` : ""}</span><b style="font-size:22px">${m.dmg}</b></button>`; }).join("")}
       ${canRetreat ? `<button class="pill sm" onclick="UI.retreat=!UI.retreat;render()">Retreat ${pip().repeat(rc) || "· free"}</button>` : ""}
       ${UI.retreat ? `<div class="chooser"><small>Who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;UI.panel=-1;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
       <button class="pill sm" onclick="UI.panel=-1;UI.retreat=false;render()">Close</button></div></div></div>` : "";

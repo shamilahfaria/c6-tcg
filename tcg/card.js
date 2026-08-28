@@ -71,7 +71,7 @@ function cardBackHTML(cls = "") {
 }
 
 document.addEventListener("pointermove", e => {
-  const c = e.target.closest(".card"); if (!c) return;
+  const c = e.target.closest(".card"); if (!c || c.closest(".static")) return; // .static: no holo tilt (attack panel)
   const r = c.getBoundingClientRect();
   const x = Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100));
   const y = Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100));
