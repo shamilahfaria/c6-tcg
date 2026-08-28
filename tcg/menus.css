@@ -110,3 +110,27 @@
 .x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: #262a38; color: var(--ink); font-size: 16px; cursor: pointer; box-shadow: inset 0 0 0 1px #ffffff26; }
 .x:hover, .x:focus-visible { background: #333846; }
 @media (max-width: 720px) { .dlg { flex-direction: column; } .dlg .show { zoom: 1; } }
+
+/* ---- phone portrait: home stacks, deck boxes 2-up, binder 2-up, modal becomes a full-screen sheet ---- */
+@media (max-width: 900px) and (orientation: portrait) {
+  .menu h1 { font-size: 42px; }
+  .home { padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+  .home .btns { flex-direction: column; gap: 14px; }
+  .home .sub { margin-bottom: 22px; }
+  .home .deco > div > * { zoom: .3; }
+  .home .deco > div:nth-child(2) { display: none; }
+  .pbtn { padding: 16px 40px; font-size: 20px; }
+  .menu .mbar { flex-wrap: wrap; }
+  .menu .mbar h2 { font-size: 22px; }
+  .boxes { grid-template-columns: 1fr 1fr; }
+  .pv-people { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 8px; }
+  .pv-people > * { flex: none; } /* keep 220px cards; scroll instead of flex-shrinking */
+  .tools .chips { flex: 1 1 100%; justify-content: center; }
+  .tools .search { flex: 1 1 140px; width: auto; min-width: 0; }
+  .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cell { zoom: .7; }
+  .bmodal { padding: 0; place-items: stretch; }
+  .dlg { max-width: none; border-radius: 0; flex-direction: column; overflow-y: auto; box-sizing: border-box; padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
+  .dlg .show { zoom: .85; }
+  .dlg .x { position: fixed; top: 54px; right: 12px; width: 44px; height: 44px; } /* below the fixed mute button; 44px tap size */
+}

@@ -144,3 +144,67 @@ body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; 
 .arena .over .panel { background: #14171ff2; backdrop-filter: blur(8px); border-radius: 24px; padding: 28px 48px; min-width: 380px; box-shadow: inset 0 0 0 1px #c9a227, 0 20px 60px #000c; color: #fff; }
 .arena .over h1 { margin: 0 0 10px; font-size: 44px; }
 .arena .over .why { color: #b9b4a6; }
+
+/* attack pills: width moved here from board.js inline style so phones can override it (desktop render identical) */
+.apanel .atkpill { width: 300px; }
+
+/* ---- phone portrait. board.js fit() adds .mobile to .arena and sets --vw/--vh/--vt (viewport width / usable bottom / top inset, in board px).
+   The board is zoomed so the stadium's middle ~440px fill the width (sides crop, hidden by the arena's overflow); the chrome re-anchors to the
+   viewport edges via --l (left/right inset in board x), --tt (viewport top in board y), --hb (usable bottom), --ht (hand-strip top). ---- */
+@media (max-width: 900px) and (orientation: portrait) {
+  .arena { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); touch-action: manipulation; }
+  .arena.mobile { place-items: start; padding-top: calc(100px + var(--vt, 0px)); box-sizing: border-box; }
+  /* centre the 1280px board by hand: grid "center" clamps to start when the item overflows a clipped container */
+  .mobile .board { margin-left: calc((var(--vw, 440px) - 1280px) / 2);
+    --l: calc(640px - var(--vw, 440px) / 2); --tt: calc(-100px - var(--vt, 0px));
+    --hb: calc(var(--vh, 880px) - 100px - var(--vt, 0px)); --ht: calc(var(--hb) - 160px); }
+  .mobile img { -webkit-touch-callout: none; }
+
+  /* top bar: message pill full-width, turn/first counter under it */
+  .mobile .msg { left: var(--l); top: calc(var(--tt) + 8px); transform: none; margin-left: 10px; width: calc(var(--vw) - 20px);
+    min-width: 0; max-width: none; padding: 9px 14px 9px 44px; font-size: 16px; }
+  .mobile .msg i { left: 12px; width: 22px; height: 22px; margin-top: -11px; }
+  .mobile .first, .mobile .turn { top: calc(var(--tt) + 66px); padding: 4px 16px; z-index: 19; }
+  .mobile .turn { font-size: 13px; } .mobile .turn b { font-size: 16px; margin-left: 4px; }
+  .mobile .first { font-size: 14px; }
+
+  /* name/points plates: slim bars at top-right (opponent) and bottom-left (you, over the hand's corner like Pocket) */
+  .mobile .who { padding: 5px 14px; gap: 10px; font-size: 14px; }
+  .mobile .who.op { right: var(--l); top: 20px; padding-right: 18px; border-radius: 18px 0 0 18px; }
+  .mobile .who.me { left: var(--l); top: calc(var(--hb) - 34px); bottom: auto; padding-left: 14px; border-radius: 0 14px 0 0; }
+  .mobile .who .pts { gap: 5px; } .mobile .who .pts i { width: 16px; height: 16px; }
+
+  /* decks tucked at the visible stadium edges */
+  .mobile .deck.op { left: calc(var(--l) + 12px); top: 200px; }
+  .mobile .deck.me { left: auto; right: calc(var(--l) + 24px); top: 396px; }
+
+  /* strip above the hand: menu bottom-left, End Turn / Battle! and energy dial bottom-right */
+  .mobile .mbtn { left: calc(var(--l) + 12px); top: calc(var(--ht) - 78px); width: 56px; height: 56px; font-size: 24px; }
+  .mobile .mpanel { left: calc(var(--l) + 80px); top: calc(var(--ht) - 76px); flex-direction: row; }
+  .mobile .side { left: auto; right: calc(var(--l) + 140px); top: calc(var(--ht) - 84px); }
+  .mobile .side .pill, .mobile .mpanel .pill { font-size: 17px; padding: 12px 20px; white-space: nowrap; }
+  .mobile .zone { left: auto; right: calc(var(--l) + 26px); top: calc(var(--ht) - 106px); }
+
+  /* hand: flat fixed strip along the bottom, horizontally scrollable (swipe sideways scrolls, dragging a card up plays it) */
+  .mobile .hand { left: var(--l); top: var(--ht); width: var(--vw); height: 160px; transform: none; box-sizing: border-box;
+    padding: 6px 10px 4px; gap: 6px; align-items: flex-end; overflow-x: auto; overflow-y: hidden;
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .mobile .hc { zoom: .48; margin-right: 0; transform: none; flex: none; }
+  .mobile .hc.on:hover { transform: none; z-index: auto; } /* sticky :hover after a tap must not fan the card away */
+  .mobile .hand .hc.on { touch-action: pan-x; } /* vertical pull = card drag, horizontal swipe = scroll the strip */
+
+  /* trainer drop zone inside the visible width */
+  .mobile .tzone { left: calc(var(--l) + 14px); right: calc(var(--l) + 14px); top: 140px; bottom: 80px; }
+
+  /* panels (attack / KO chooser / leave confirm / result) cover the phone viewport, stack vertically, scroll if tall */
+  .mobile .apanel, .mobile .over { inset: auto; left: var(--l); top: var(--tt); width: var(--vw); height: var(--vh);
+    box-sizing: border-box; padding: 14px 0; place-items: safe center; overflow-y: auto; overscroll-behavior: contain; }
+  .mobile .ap { flex-direction: column; gap: 10px; }
+  .mobile .ap .big { zoom: .72; }
+  .mobile .acts { width: calc(var(--vw) - 44px); }
+  .mobile .apanel .atkpill { width: 100%; box-sizing: border-box; }
+  .mobile .chooser { flex-wrap: wrap; justify-content: center; }
+  .mobile .acts .pill { padding-top: 13px; padding-bottom: 13px; } /* ≥44px tap size */
+  .mobile .over .panel { min-width: 0; width: calc(var(--vw) - 48px); box-sizing: border-box; padding: 22px 18px; }
+  .mobile .over h1 { font-size: 34px; }
+}
