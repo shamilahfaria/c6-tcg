@@ -71,7 +71,7 @@ function render() {
     <div class="orb ${e || "off"}" ${live}>${e ? icon(e) : ""}</div><div class="orb sm ${me.energyPreview}">${icon(me.energyPreview)}</div></div>`;
 
   const menu = `<button class="mbtn" onclick="UI.menu=!UI.menu;render()" aria-label="Menu">☰</button>
-    ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="quit();binder()">Binder</button><button class="pill" onclick="quit();window.title()">Home</button></div>` : ""}`;
+    ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="UI.confirm='binder';UI.menu=false;render()">Binder</button><button class="pill" onclick="UI.confirm='title';UI.menu=false;render()">Home</button></div>` : ""}`;
 
   const apanel = panel ? `<div class="apanel" onclick="if(event.target===this){UI.panel=-1;UI.retreat=false;render()}"><div class="ap">
     <div class="big static">${cardHTML(me.active, { inplay: true })}</div>
@@ -91,9 +91,13 @@ function render() {
     <h2 style="margin:0 0 4px;color:#fff;font-size:22px">${G.log.find(l => /knocked out/.test(l)) ? "Your card was knocked out!" : "Choose who steps in"}</h2>
     <div class="chooser"><small>Choose who steps in${me.bench.length ? "" : " — no one left"}</small>${me.bench.map((c, i) => `<div class="cw pickable" onclick="promote(${i})">${cardHTML(c)}</div>`).join("")}</div>
     </div></div></div>` : "";
+  const leave = UI.confirm && G.phase !== "over" ? `<div class="apanel"><div class="ap"><div class="acts">
+    <h2 style="margin:0 0 6px;color:#fff;font-size:22px">Are you sure?</h2><p style="margin:0 0 10px;color:#ddd">You will lose your progress in this game.</p>
+    <button class="pill" onclick="const t=UI.confirm;UI.confirm=null;quit();t==='binder'?binder():window.title()">Leave</button>
+    <button class="pill sm" onclick="UI.confirm=null;render()">Stay</button></div></div></div>` : "";
   app.innerHTML = `<div class="arena ${G.phase} ${UI.arm ? "armed" : ""}"><div class="board">
     <div class="rim"><div class="felt"><div class="court"></div></div></div><div class="tzone" data-drop="trainer"></div>
-    ${opSide}${mySide}${pills}${dial}${menu}${handHTML(me, setup ? "setup" : mine ? "play" : null)}${apanel}${ppanel}${over}</div></div>`;
+    ${opSide}${mySide}${pills}${dial}${menu}${handHTML(me, setup ? "setup" : mine ? "play" : null)}${apanel}${ppanel}${leave}${over}</div></div>`;
   fit();
 }
 
@@ -163,3 +167,6 @@ function endDrag(e, ok) {
 document.addEventListener("pointerup", e => endDrag(e, true));
 document.addEventListener("pointercancel", e => endDrag(e, false));
 document.addEventListener("click", e => { if (swallow) { swallow = false; e.stopPropagation(); e.preventDefault(); } }, true); // a drag must not also click
+
+// Refresh/close mid-battle: let the browser ask first.
+addEventListener("beforeunload", e => { if (window.G && ["setup", "play", "promote"].includes(G.phase)) { e.preventDefault(); e.returnValue = ""; } });

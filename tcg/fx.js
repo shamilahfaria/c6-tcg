@@ -1,5 +1,5 @@
 // Visual + audio effects. Owned by the FX work. Every function is fire-and-forget and must never throw.
-// Engine calls: FX.banner(text) FX.coin(heads, label?) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
+// Engine calls: FX.banner(text) FX.coin(heads, label?) FX.draw(fromEl, toEl) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
 // All visuals are overlays appended to <body>, positioned from the target's rect at call time: the engine re-renders #app right after.
 (() => {
   const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -110,7 +110,18 @@
       get playing() { return on; },
     };
   })();
+
+  // card draw: a card back slides from a deck stack into a hand, then fades as the real hand re-renders beneath it
+  const DRAW = safe((fromEl, toEl) => {
+    const a = rect(fromEl), b = rect(toEl); if (!a || !b) return;
+    const back = typeof cardBackHTML === "function" ? cardBackHTML() : `<div style="width:100%;height:100%;background:#0b0b0d;border:3px solid #c9a227;border-radius:10px"></div>`;
+    const w = spawn("fx-draw", back, 700, { left: a.left + "px", top: a.top + "px", width: a.width + "px", height: a.height + "px",
+      "--dx": (b.left + b.width / 2 - a.left - a.width / 2) + "px", "--dy": (b.top + b.height / 2 - a.top - a.height / 2) + "px", "--sc": (b.width / a.width).toFixed(3) });
+    const c = w.firstElementChild; if (c && c.classList) { c.style.zoom = ""; const cr = c.getBoundingClientRect(); if (cr.width) c.style.transform = `scale(${a.width / cr.width})`; c.style.transformOrigin = "0 0"; }
+    FX.play("click");
+  });
   window.FX = {
+    draw: DRAW,
     music: MUSIC,
     banner: safe(text => {
       spawn("fx-banner", `<span>${esc(text)}</span>`, 900); FX.play("banner");

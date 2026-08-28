@@ -54,6 +54,8 @@ function beginTurn(who) {
   if (opening) { s.energyNext = null; log(`${name(who)} go${who === "me" ? "" : "es"} first: drew a card, no energy this turn.`); }
   else { s.energyNext = s.energyPreview || rnd(s.types); s.energyPreview = rnd(s.types); log(`${name(who)} drew a card. Energy Zone: ${icon(s.energyNext)}.`); }
   render();
+  // draw animation: deck stack → hand (your hand's newest card, or the opponent's face-down hand)
+  setTimeout(() => { try { FX.draw(document.querySelector(who === "me" ? ".deck.me" : ".deck.op"), who === "me" ? document.querySelector(".hand > :last-child") : document.querySelector(".ophand")); } catch {} }, 30);
   if (who === "op") setTimeout(aiTurn, 900);
 }
 
