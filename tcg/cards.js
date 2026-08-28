@@ -110,8 +110,6 @@ window.CARDS = [
   // Gauntlet staff as colorless cards (deck filler). Names are Pokémon-style; no invented biographies.
   { id: "jevic", name: "Jevichu", real: "Jevic (staff)", photo: "photos/staff-jevic.jpg", type: "normal", hp: 90,
     sig: { name: "Cohort Announcement", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
-  { id: "zac", name: "Zacrow", real: "Zac (staff)", photo: "photos/staff-zac.jpg", type: "normal", hp: 100,
-    sig: { name: "Whiteboard Session", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
   { id: "aaron", name: "Aaronaut", real: "Aaron (staff)", photo: "photos/staff-aaron.jpg", type: "normal", hp: 90,
     sig: { name: "Pair Programming", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
   { id: "sara", name: "Sarasaur", real: "Sara (staff)", photo: "photos/staff-sara.jpg", type: "normal", hp: 100,
@@ -124,6 +122,10 @@ window.CARDS = [
     sig: { name: "Interview Prep", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
   { id: "derek", name: "Derekrow", real: "Derek (staff)", photo: "photos/staff-derek.jpg", type: "normal", hp: 100,
     sig: { name: "Code Review", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "drew", name: "Drewgon", real: "Drew (staff)", photo: "photos/staff-drew.jpg", type: "normal", hp: 90,
+    sig: { name: "Roll Call", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
+  { id: "johnny-walker", name: "Walkarus", real: "Johnny Walker (staff)", photo: "photos/staff-johnny-walker.jpg", type: "normal", hp: 100,
+    sig: { name: "Always Here", cost: { c: 3 }, dmg: 70, flip: true }, flavor: "Gauntlet staff. Fits in any deck." },
   { id: "andria", name: "Andriaz", real: "Andria (staff)", photo: "photos/staff-andria.jpg", type: "normal", hp: 90,
     sig: { name: "Attendance Check", cost: { c: 2 }, dmg: 50 }, flavor: "Gauntlet staff. Fits in any deck." },
 ];
@@ -141,12 +143,11 @@ window.TRAINERS = [
   // Gauntlet staff
   { id: "austen", kind: "supporter", staff: true, name: "Austen", photo: "photos/staff-austen.jpg", effect: "draw3", text: "Draw 3 cards." },
   { id: "ash", kind: "supporter", staff: true, name: "Ash", photo: "photos/staff-ash.jpg", effect: "plus10", text: "This turn, your attacks do +10 damage. Gotta be the very best." },
+  { id: "zac", kind: "supporter", staff: true, name: "Zac", photo: "photos/staff-zac.jpg", effect: "redcard", text: "Your opponent shuffles their hand into their deck and draws 3." },
   { id: "byron", kind: "supporter", staff: true, name: "Byron", photo: "photos/staff-byron.jpg", effect: "shield", text: "During your opponent's next turn, your active card takes 20 less damage." },
   { id: "holdy", kind: "supporter", staff: true, name: "Holdy", photo: "photos/staff-holdy.jpg", effect: "flipEnergy", text: "Flip a coin until tails. For each heads, attach 1 energy of your type to your active card." },
   { id: "tom", kind: "supporter", staff: true, name: "Tom", photo: "photos/staff-tom.jpg", effect: "heal50", text: "Heal 50 damage from your active card." },
   { id: "tom-2", kind: "supporter", staff: true, name: "Tom", photo: "photos/staff-tom-2.jpg", effect: "moveEnergy", text: "Move 1 energy from each of your benched cards to your active card." },
-  { id: "drew", kind: "supporter", staff: true, name: "Drew", photo: "photos/staff-drew.jpg", effect: "draw2", text: "Drew draws. Draw 2 cards." },
   { id: "matthew-poole", kind: "supporter", staff: true, name: "Matthew Poole", photo: "photos/staff-matthew-poole.jpg", effect: "sabrina", text: "Hiring partner intro: your opponent switches their active card with a benched one." },
-  { id: "johnny-walker", kind: "supporter", staff: true, name: "Johnny Walker", photo: "photos/staff-johnny-walker.jpg", effect: "draw5", text: "Always here. Draw cards until you have 5 in hand." },
   { id: "jon-lucas", kind: "supporter", staff: true, name: "Jon Lucas", photo: "photos/staff-jon-lucas.jpg", effect: "retreatFree", text: "Demo Day walk-on: this turn, your active card's retreat cost is 0." },
 ];

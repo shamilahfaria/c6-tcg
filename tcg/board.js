@@ -64,7 +64,7 @@ function render() {
     <div class="orb ${e || "off"}" ${live}>${e ? icon(e) : ""}</div><div class="orb sm ${me.energyPreview}">${icon(me.energyPreview)}</div></div>`;
 
   const menu = `<button class="mbtn" onclick="UI.menu=!UI.menu;render()" aria-label="Menu">☰</button>
-    ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="quit();binder()">Binder</button><button class="pill" onclick="quit();title()">Home</button></div>` : ""}`;
+    ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="quit();binder()">Binder</button><button class="pill" onclick="quit();window.title()">Home</button></div>` : ""}`;
 
   const apanel = panel ? `<div class="apanel" onclick="if(event.target===this){UI.panel=-1;UI.retreat=false;render()}"><div class="ap">
     <div class="big">${cardHTML(me.active, { attack: true, busy: !mine })}</div>
