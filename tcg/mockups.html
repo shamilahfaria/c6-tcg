@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gauntlet TCG · card type mockups</title>
+<link rel="stylesheet" href="holo.css">
+<link rel="stylesheet" href="card.css?m=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cabin:wght@600;700&family=Source+Sans+3:wght@600;700;900&family=Jost:wght@600;700&family=Lato:wght@700;900&family=Nunito:wght@700;900&display=swap">
+<style>
+  body { margin: 0; background: #0e1016; color: #f3efe4; font: 15px/1.4 Nunito, system-ui, sans-serif; padding: 28px 24px 60px; }
+  h1 { margin: 0 0 4px; font: 900 26px/1.1 Nunito, system-ui; }
+  .sub { color: #b9b4a6; margin: 0 0 26px; max-width: 70ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 26px 22px; }
+  .v { background: #14171f; border: 1px solid #262a38; border-radius: 14px; padding: 16px 14px 14px; box-shadow: 0 10px 30px #0008; }
+  .v h2 { margin: 0; font-size: 18px; } .v h2 b { color: #e3c25a; font-weight: 900; margin-right: 6px; }
+  .v p { margin: 4px 0 12px; color: #b9b4a6; font-size: 12.5px; min-height: 3.6em; }
+  .row { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .bench { display: flex; gap: 6px; justify-content: center; margin-top: 10px; } .bench > * { zoom: .34; }
+  .lbl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8f8b80; margin: 14px 0 4px; text-align: center; }
+  /* variants: only the family + name weight change; card.css is otherwise untouched */
+  .v-nunito .card, .v-nunito .trainer { font-family: Nunito, system-ui, sans-serif; }
+  .v-gill .card, .v-gill .trainer { font-family: "Gill Sans", "Gill Sans MT", Cabin, sans-serif; } .v-gill .nm, .v-gill .hp, .v-gill .atk b { font-weight: 700; }
+  .v-cabin .card, .v-cabin .trainer { font-family: Cabin, "Gill Sans", sans-serif; } .v-cabin .nm, .v-cabin .hp, .v-cabin .atk b { font-weight: 700; }
+  .v-source .card, .v-source .trainer { font-family: "Source Sans 3", system-ui, sans-serif; } .v-source .nm, .v-source .hp, .v-source .atk b { font-weight: 900; }
+  .v-jost .card, .v-jost .trainer { font-family: Jost, system-ui, sans-serif; } .v-jost .nm, .v-jost .hp, .v-jost .atk b { font-weight: 700; letter-spacing: 0; }
+  .v-lato .card, .v-lato .trainer { font-family: Lato, system-ui, sans-serif; } .v-lato .nm, .v-lato .hp, .v-lato .atk b { font-weight: 900; }
+</style>
+<h1>Card type — pick one</h1>
+<p class="sub">Same card CSS in every column; only the family and the name/number weight change. Each column shows an ex card with a long name, a Staff card, a trainer with the longest title, then the same three at bench scale (zoom .34). Names are auto-fitted by measurement, so nothing can spill.</p>
+<div class="grid" id="g"></div>
+<script src="cards.js"></script>
+<script src="battle.js"></script>
+<script src="card.js"></script>
+<script>
+const V = [
+  ["nunito", "Nunito", "Rounded humanist. Friendly, Pocket-UI adjacent. Current baseline."],
+  ["gill", "Gill Sans Bold", "The real Pokémon card face, at the right weight (700, never 900). Installed on Macs/iOS; falls back to Cabin elsewhere."],
+  ["cabin", "Cabin", "Google Fonts humanist drawn after Gill Sans and Erbar. The hosted, everyone-sees-the-same-thing version of the card face."],
+  ["source", "Source Sans 3", "Clean, neutral humanist. Closest to Pocket's in-app UI type. Very legible at bench size."],
+  ["jost", "Jost", "Geometric, Futura-like. Pokémon-logo / HP-number energy. Bolder personality, slightly less legible small."],
+  ["lato", "Lato", "Warm humanist, strong at heavy weights. The safe modern pick."],
+];
+const ex = CARDS.find(c => c.id === "cristina-guzman"), staff = CARDS.find(c => c.id === "johnny-walker"), tr = TRAINERS.find(t => t.id === "hiring-partner-intro");
+document.getElementById("g").innerHTML = V.map(([k, name, note], i) => `<section class="v v-${k}">
+  <h2><b>${String.fromCharCode(65 + i)}</b>${name}</h2><p>${note}</p>
+  <div class="row">${cardHTML({ ...ex, hp: 90, max: 130, energy: ["psychic", "psychic"] }, { full: true })}${cardHTML(staff, { full: true })}${trainerHTML(tr)}</div>
+  <div class="lbl">bench scale</div><div class="bench">${cardHTML({ ...ex, hp: 90, max: 130 }, { inplay: true })}${cardHTML(staff, { inplay: true })}${trainerHTML(tr)}</div>
+</section>`).join("");
+</script>

@@ -27,7 +27,7 @@
 /* header: Basic tag (.basic — .stage is the board in style.css), name, HP, type circle */
 .hd { display: flex; align-items: center; gap: 4px; height: 19px; }
 .basic { flex: none; font-size: 7px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; line-height: 1; padding: 2px 3px; border-radius: 3px; background: #fff; color: #333; box-shadow: 0 0 0 1px #0002; }
-.hd .nm { flex: 1; min-width: 0; font-size: 15px; font-weight: 900; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 2px #fff; }
+.hd .nm { flex: 1; min-width: 0; font-size: 15px; font-weight: 900; letter-spacing: -.3px; white-space: nowrap; overflow: hidden; text-shadow: 0 0 2px #fff; }
 .ex .hd { gap: 3px; }   /* ex badge + 3-digit HP need the room; card.js also steps the name size by length */
 .exb { flex: none; font-style: italic; font-weight: 900; font-size: 10px; line-height: 1; margin: 0 2px 0 -1px; padding: 1px 4px 2px; border-radius: 3px;
     color: #ffe08a; background: linear-gradient(#e63c2f, #a3170e); box-shadow: 0 0 0 1px #ffd866, 0 1px 2px #0006; }
@@ -85,7 +85,7 @@ button.atk:disabled { opacity: .5; cursor: default; }
 .trainer .hd { justify-content: space-between; height: 14px; }
 .trainer .kind { font-size: 8px; font-weight: 900; font-style: italic; text-transform: capitalize; letter-spacing: .04em; color: #fff; background: var(--f2); padding: 2px 8px; border-radius: 3px; }
 .trainer .tl { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: .14em; color: #222; padding: 2px 8px; border-radius: 3px; background: linear-gradient(#f4f5f8, #c8ccd6); box-shadow: 0 0 0 1px #9aa3b4; }
-.trainer .nm { display: block; font-size: 16px; font-weight: 900; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trainer .nm { display: block; font-size: 16px; font-weight: 900; line-height: 1.1; white-space: nowrap; overflow: hidden; }
 .trainer .pic { --c1: #c9a227; --c2: #6a5410; height: 120px; }
 .trainer .pic.ph { background: radial-gradient(circle at 50% 40%, #2a2a30, #0b0b0d 70%); }
 .trainer .pic.ph img { position: static; width: 48%; height: auto; object-fit: contain; opacity: .95; filter: drop-shadow(0 2px 6px #000); }

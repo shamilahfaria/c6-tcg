@@ -85,3 +85,16 @@ document.addEventListener("pointerout", e => {
   c.classList.remove("interacting");
   c.style.cssText = "";
 });
+
+// Hard rule: a card name never overflows its header. Measured fit (not guessed by length): after any render,
+// shrink each unfitted .nm until it fits its box; also clears any ellipsis. Runs once per element.
+(() => {
+  const fit = () => document.querySelectorAll(".nm:not([data-fit])").forEach(el => {
+    el.dataset.fit = "1";
+    const z = parseFloat(getComputedStyle(el).fontSize) || 14;
+    for (let s = z; s >= 7 && el.scrollWidth > el.clientWidth + 0.5; s -= 0.5) el.style.fontSize = s + "px";
+  });
+  new MutationObserver(() => requestAnimationFrame(fit)).observe(document.documentElement, { childList: true, subtree: true });
+  document.fonts?.ready.then(() => { document.querySelectorAll(".nm[data-fit]").forEach(el => delete el.dataset.fit); fit(); });
+  addEventListener("load", fit);
+})();
