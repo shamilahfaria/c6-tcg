@@ -105,5 +105,3 @@ button.atk:disabled { opacity: .5; cursor: default; }
 /* the set/rarity line only matters in the binder; in play and in hand the art gets the room */
 .card:not(.full) .rr { display: none; }
 
-/* Pokémon-style display face for names, HP and damage; body text stays Nunito for legibility at small sizes */
-.card .nm, .card .hp, .card .atk b, .card .hpn, .trainer .nm, .trainer b { font-family: "Gill Sans", "Gill Sans MT", Lato, Nunito, sans-serif; letter-spacing: 0; }
