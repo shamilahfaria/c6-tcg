@@ -1,0 +1,8 @@
+/* Title, deck picker, binder. Owned by the menus work. */
+  h1 { font-size: 56px; margin: 60px 0 16px; }
+  .big { font-size: 22px; padding: 12px 36px; border: 0; border-radius: 8px; background: #ffcc33; cursor: pointer; }
+  .typepick button { font: 18px system-ui; margin: 6px; padding: 12px 18px; border-radius: 10px; border: 3px solid transparent; background: #2a2f3a; color: #eee; cursor: pointer; }
+  .typepick button.on { border-color: #ffcc33; background: #3a3520; }
+  .over h1 { margin-top: 120px; }
+  .alt { background: #8fd8ff; }
+  .hint { color: #888; font-size: 13px; } .hint a { color: #ffcc33; }
