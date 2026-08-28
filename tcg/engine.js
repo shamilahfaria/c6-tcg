@@ -41,7 +41,7 @@ function setupPick(i) { // choose starting active / bench from hand
   G.me.hand.splice(i, 1); render();
 }
 
-function begin() { G.phase = "play"; beginTurn(G.first); }
+function begin() { G.phase = "play"; try { FX.music.start(); } catch {} beginTurn(G.first); }
 
 
 function beginTurn(who) {
@@ -163,7 +163,7 @@ function applyTrainer(who, t) {
   return true;
 }
 
-function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; render(); }
+function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; try { FX.music.stop(); } catch {} render(); }
 
 
 function aiTurn() {

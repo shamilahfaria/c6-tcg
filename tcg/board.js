@@ -30,7 +30,7 @@ function playTrainer(i) { // Pocket: the trainer is shown big in the centre for 
   document.body.append(d); setTimeout(() => { d.remove(); playCard(i); }, 800);
 }
 
-function quit() { G.phase = "over"; UI.menu = false; } // leaving mid-battle: "over" is what the engine's AI timers check before acting, so nothing re-renders the board later
+function quit() { G.phase = "over"; UI.menu = false; try { FX.music.stop(); } catch {} } // leaving mid-battle: "over" is what the engine's AI timers check before acting, so nothing re-renders the board later
 
 function render() {
   const me = G.me, op = G.op, mine = myTurn(), setup = G.phase === "setup", promo = G.phase === "promote";
@@ -77,9 +77,14 @@ function render() {
     <p>You ${pts(me.points)} &nbsp;·&nbsp; Opponent ${pts(op.points)}</p><p class="why">${G.why}. ${G.log.at(-1) || ""}</p>
     <p><button class="pill" onclick="typePick()">Play again</button> &nbsp; <button class="pill sm" onclick="binder()">Binder</button></p></div></div>` : "";
 
+  // knockout: an unmissable chooser — the bench cards are the buttons
+  const ppanel = promo && !me.active ? `<div class="apanel promote"><div class="ap"><div class="acts">
+    <h2 style="margin:0 0 4px;color:#fff;font-size:22px">${G.log.find(l => /knocked out/.test(l)) ? "Your card was knocked out!" : "Choose who steps in"}</h2>
+    <div class="chooser"><small>Choose who steps in${me.bench.length ? "" : " — no one left"}</small>${me.bench.map((c, i) => `<div class="cw pickable" onclick="promote(${i})">${cardHTML(c)}</div>`).join("")}</div>
+    </div></div></div>` : "";
   app.innerHTML = `<div class="arena ${G.phase} ${UI.arm ? "armed" : ""}"><div class="board">
     <div class="rim"><div class="felt"><div class="court"></div></div></div><div class="tzone" data-drop="trainer"></div>
-    ${opSide}${mySide}${pills}${dial}${menu}${handHTML(me, setup ? "setup" : mine ? "play" : null)}${apanel}${over}</div></div>`;
+    ${opSide}${mySide}${pills}${dial}${menu}${handHTML(me, setup ? "setup" : mine ? "play" : null)}${apanel}${ppanel}${over}</div></div>`;
   fit();
 }
 

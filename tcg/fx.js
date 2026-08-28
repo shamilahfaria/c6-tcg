@@ -68,12 +68,50 @@
   // ---- mute toggle: the only permanent DOM we own, appended to <body> once (survives #app re-renders) ----
   const btn = document.createElement("button"); btn.id = "fx-mute"; btn.type = "button";
   const paint = () => { btn.textContent = muted() ? "🔇" : "🔊"; btn.title = muted() ? "Unmute" : "Mute"; btn.setAttribute("aria-label", btn.title); };
-  btn.onclick = () => { try { localStorage.setItem("gtcg-mute", muted() ? "0" : "1"); } catch {} paint(); FX.play("click"); };
+  btn.onclick = () => { try { localStorage.setItem("gtcg-mute", muted() ? "0" : "1"); } catch {} paint(); FX.play("click"); if (muted()) MUSIC.stop(); else if (window.G && G.phase === "play") MUSIC.start(); };
   paint(); document.body.appendChild(btn);
   document.addEventListener("click", e => { if (e.target.closest("button:not(#fx-mute), .pickable")) FX.play("click"); });
 
   const safe = f => (...a) => { try { f(...a); } catch (e) { console.debug("FX", e); } };
+
+  // ---- background music: an original 8-bit battle loop (square lead, triangle bass, noise hats), no files ----
+  // Notes are semitones from A4. 160 BPM, 16th-note grid, 4 bars looping.
+  const MUSIC = (() => {
+    const LEAD = [0,0,3,0,7,0,3,0, 0,0,3,0,10,7,3,0,  -4,-4,0,-4,3,-4,0,-4, -2,-2,2,-2,5,-2,2,-2,
+                  0,0,3,0,7,0,3,0, 0,0,3,0,10,7,3,0,  -5,-2,2,7,5,2,-2,-5, 0,3,7,12,10,7,3,0];
+    const BASS = [-24,-24,-24,-24,-24,-24,-24,-24, -28,-28,-28,-28,-26,-26,-26,-26, -24,-24,-24,-24,-24,-24,-24,-24, -29,-29,-29,-29,-24,-24,-24,-24];
+    const f = n => 440 * Math.pow(2, n / 12);
+    let on = false, step = 0, next = 0, timer = null, master = null, noise = null;
+    function tone(c, type, freq, t, dur, vol) {
+      const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    }
+    function hat(c, t, vol) {
+      if (!noise) { const n = c.sampleRate * 0.05, buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; noise = buf; }
+      const s = c.createBufferSource(), g = c.createGain(), hp = c.createBiquadFilter(); s.buffer = noise; hp.type = "highpass"; hp.frequency.value = 6000;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04); s.connect(hp); hp.connect(g); g.connect(master); s.start(t); s.stop(t + 0.05);
+    }
+    function tick() {
+      const c = audio(); if (!c || !on) return;
+      const spb = 60 / 160 / 4; // seconds per 16th
+      while (next < c.currentTime + 0.15) {
+        const i = step % 64;
+        tone(c, "square", f(LEAD[i]), next, spb * 0.9, 0.045);
+        if (i % 2 === 0) tone(c, "triangle", f(BASS[(i / 2) % 32]), next, spb * 1.8, 0.07);
+        hat(c, next, i % 4 === 0 ? 0.035 : 0.015);
+        next += spb; step++;
+      }
+    }
+    return {
+      start() { if (on || muted()) return; const c = audio(); if (!c) return; on = true; step = 0; next = c.currentTime + 0.05;
+        master = master || c.createGain(); master.gain.value = 0.5; master.connect(c.destination); timer = setInterval(tick, 40); tick(); },
+      stop() { on = false; clearInterval(timer); timer = null; },
+      get playing() { return on; },
+    };
+  })();
   window.FX = {
+    music: MUSIC,
     banner: safe(text => {
       spawn("fx-banner", `<span>${esc(text)}</span>`, 900); FX.play("banner");
     }),
