@@ -3,10 +3,11 @@
 <title>Gauntlet TCG</title>
 <link rel="stylesheet" href="holo.css">
 <style>
-  body { margin: 0; padding: 20px; background: #151820; color: #eee; font: 15px/1.3 system-ui, sans-serif; text-align: center; }
+  body { margin: 0; padding: 10px 10px 40px; background: #151820; color: #eee; font: 15px/1.3 system-ui, sans-serif; text-align: center; }
   h1 { font-size: 56px; margin: 60px 0 16px; }
   .big { font-size: 22px; padding: 12px 36px; border: 0; border-radius: 8px; background: #ffcc33; cursor: pointer; }
-  .row { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; margin: 16px 0; }
+  .row { display: flex; justify-content: center; align-items: center; gap: 24px; flex-wrap: wrap; margin: 8px 0; }
+  .board .active { zoom: .82; }
   .bench { display: flex; gap: 8px; }
   .mini { zoom: .5; }
   .log { min-height: 1.5em; font-size: 20px; margin: 12px; } .log small { display: block; font-size: 13px; color: #777; }
@@ -26,9 +27,33 @@
   .card.fighting { --c1: #f0c8a0; --c2: #a86428; }
   .hd { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; white-space: nowrap; } .hd span + span { font-size: 12px; }
   .bar { height: 6px; background: #0003; border-radius: 3px; } .bar i { display: block; height: 100%; background: #2ecc40; border-radius: 3px; }
-  .pic { width: 100%; height: 112px; border-radius: 6px; background: #fff6; border: 3px solid #fff8; box-sizing: border-box; display: grid; place-items: center;
+  .pic { width: 100%; height: 120px; border-radius: 6px; background: #fff6; border: 3px solid #fff8; box-sizing: border-box; display: grid; place-items: center;
     font-size: 40px; font-weight: 800; position: relative; overflow: hidden; }
-  .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .full .pic { height: 96px; }
+  .face { overflow: hidden; }
+  .real { font-size: 10px; color: #444; text-align: right; }
+  .ex { font-size: 11px; font-style: italic; color: #b8860b; margin-left: 3px; }
+  .energy { letter-spacing: -2px; }
+  .cost { font-size: 11px; letter-spacing: -1px; margin-right: 4px; }
+  .board { max-width: 1100px; margin: 0 auto; }
+  .status { color: #aaa; font-size: 13px; margin: 6px; text-transform: uppercase; letter-spacing: .08em; }
+  .status b { color: #ffcc33; letter-spacing: 0; }
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .acts button, .acts .dis { font: 12px system-ui; padding: 4px 8px; border-radius: 6px; border: 0; background: #ffcc33; cursor: pointer; }
+  .acts .dis { background: #333; color: #777; cursor: default; }
+  .hand { display: flex; justify-content: center; align-items: flex-start; gap: 6px; flex-wrap: wrap; margin: 4px auto 0; padding: 6px; border-top: 1px solid #333; }
+  .trainer { width: 120px; min-height: 80px; box-sizing: border-box; padding: 8px; border-radius: 8px; text-align: left; color: #111; background: #e8e2c8; border: 4px solid #d8cfa8; font-size: 12px; }
+  .trainer.supporter { background: #ffd9a8; border-color: #e5b878; }
+  .trainer b { display: block; font-size: 13px; } .trainer small { color: #666; text-transform: uppercase; font-size: 9px; letter-spacing: .1em; }
+  .trainer p { margin: 4px 0 0; } .pickable.trainer:hover { outline: 3px solid #ffcc33; }
+  .zone { position: fixed; right: 16px; bottom: 16px; background: #22262f; border: 1px solid #444; border-radius: 12px; padding: 10px 14px; text-align: left; font-size: 13px; color: #aaa; }
+  .zone .cur { font-size: 34px; line-height: 1; color: #fff; }
+  .zone .dim { opacity: .35; }
+  .typepick button { font: 18px system-ui; margin: 6px; padding: 12px 18px; border-radius: 10px; border: 3px solid transparent; background: #2a2f3a; color: #eee; cursor: pointer; }
+  .typepick button.on { border-color: #ffcc33; background: #3a3520; }
+  .log { min-height: 3.6em; font-size: 17px; margin: 4px; } .log small { font-size: 12px; }
+  .over h1 { margin-top: 120px; }
   .type { font-size: 12px; text-align: center; margin-top: -2px; }
   .atk { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 5px 8px; border: 0; border-radius: 6px;
     background: #fff9; font: inherit; width: 100%; text-align: left; }
@@ -46,127 +71,268 @@
 <script src="cards.js"></script>
 <script src="battle.js"></script>
 <script>
-const LABEL = { fire: "Frontend", water: "Data", grass: "ML", electric: "Infra", psychic: "Agents", fighting: "Evals" };
-const ICON = { fire: "🔥", water: "💧", grass: "🌿", electric: "⚡", psychic: "🔮", fighting: "🥊" };
 const app = document.getElementById("app");
-const shuffle = a => a.slice().sort(() => Math.random() - .5); // ponytail: biased shuffle, fine for 29 cards
-const typeOf = t => `${ICON[t]} ${LABEL[t]}`;
-let S;
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => a.slice().sort(() => Math.random() - .5); // ponytail: biased shuffle, fine for 20 cards
+const icon = t => TYPES[t].icon;
+const typeOf = t => `${icon(t)} ${TYPES[t].label}`;
+const moves = c => [COMMON[c.type], c.sig];
+const pips = (cost, t) => icon(t).repeat(cost.t || 0) + "⚪".repeat(cost.c || 0);
+const dots = n => "●".repeat(n) + "○".repeat(Math.max(0, 3 - n));
+let G;
 
-// o: { cls, onclick, badge, attack (render attacks as buttons), busy (disable them) }
+// ---------- rendering ----------
+// o: { cls, onclick, badge, attack (render moves as buttons), busy, full (show flavor), extra (html under the card) }
 function cardHTML(c, o = {}) {
-  const max = c.max || c.hp;
+  const max = c.max || c.hp, energy = c.energy || [];
   const initials = c.name.split(" ").map(w => w[0]).join("").slice(0, 2);
-  const atks = c.attacks.map((a, i) => {
-    const rider = [a.flip ? "🪙 coin flip" : "", a.text || ""].filter(Boolean).join(" · ");
-    const inner = `<span>${a.name}${rider ? `<small>${rider}</small>` : ""}</span><b>${a.dmg}</b>`;
-    return o.attack ? `<button class="atk" onclick="attack(${i})" ${o.busy ? "disabled" : ""}>${inner}</button>` : `<div class="atk">${inner}</div>`;
+  const rows = moves(c).map((m, i) => {
+    const rider = [m.flip ? "🪙 coin flip" : "", m.text || ""].filter(Boolean).join(" · ");
+    const inner = `<span><span class="cost">${pips(m.cost, c.type)}</span>${m.name}${rider ? `<small>${rider}</small>` : ""}</span><b>${m.dmg}</b>`;
+    const ok = o.attack && !o.busy && canPay(c, m.cost);
+    return o.attack ? `<button class="atk" onclick="attack(${i})" ${ok ? "" : "disabled"}>${inner}</button>` : `<div class="atk">${inner}</div>`;
   }).join("");
-  return `<div class="card ${c.type} ${o.cls || ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}>
+  return `<div class="card ${c.type} ${o.cls || ""} ${o.full ? "full" : ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}>
     ${o.badge ? `<b class="n">${o.badge}</b>` : ""}
     <div class="card__rotator">
       <div class="card__front"><div class="face">
-        <div class="hd"><span>${c.name}</span><span>${c.hp}/${max} HP</span></div>
+        <div class="hd"><span>${c.name}${c.ex ? `<em class="ex">ex</em>` : ""}</span><span>${c.hp}/${max} HP</span></div>
         <div class="bar"><i style="width:${c.hp / max * 100}%"></i></div>
         <div class="pic">${initials}${c.photo ? `<img src="${c.photo}" alt="" onerror="this.remove()">` : ""}</div>
-        <div class="type">${typeOf(c.type)}</div>
-        ${atks}
-        <div class="weak">weak to ${typeOf(WEAK[c.type])} (2x)</div>
-        <div class="flavor">${c.flavor}</div>
+        <div class="type">${typeOf(c.type)} <span class="energy">${energy.map(icon).join("")}</span></div>
+        ${rows}
+        <div class="weak">weak to ${icon(WEAK[c.type])} +20 · retreat ${"⚪".repeat(c.retreat ?? 1) || "free"}</div>
+        ${o.full ? `<div class="flavor">${c.flavor}</div><div class="real">${c.real}</div>` : ""}
       </div></div>
       <div class="card__shine"></div>
       <div class="card__glare"></div>
     </div>
   </div>`;
 }
+function trainerHTML(t, o = {}) {
+  return `<div class="trainer ${t.kind} ${o.cls || ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}><b>${t.name}</b><small>${t.kind}</small><p>${t.text}</p></div>`;
+}
+function handHTML(s, mine) {
+  return s.hand.map((c, i) => c.sig
+    ? cardHTML(c, { cls: "mini" + (mine ? " pickable" : ""), onclick: mine ? `playCard(${i})` : "" })
+    : trainerHTML(c, { cls: mine ? "pickable" : "", onclick: mine ? `playCard(${i})` : "" })).join("");
+}
 
 function title() {
-  app.innerHTML = `<h1>Gauntlet TCG</h1><p>Cohort 6 as a card game. Draft 3. Exploit weaknesses. Ship before midnight.</p>
-    <p><button class="big" onclick="draft()">Play</button> &nbsp; <button class="big alt" onclick="binder()">Find your card</button></p>
-    <p class="hint">${CARDS.length} cards · hover to tilt</p>`;
+  app.innerHTML = `<h1>Gauntlet TCG</h1><p>Cohort 6 as a card game, Pokémon TCG Pocket rules. 20-card decks, an Energy Zone, 3 points to win.</p>
+    <p><button class="big" onclick="typePick()">Play</button> &nbsp; <button class="big alt" onclick="binder()">Find your card</button></p>
+    <p class="hint">${CARDS.length} people · ${TRAINERS.length} trainers · hover to tilt</p>`;
 }
 function binder() {
-  app.innerHTML = `<h2>The Binder</h2><p class="hint"><a href="#" onclick="title();return false">← Back</a> · all ${CARDS.length} cards, in Guess Who order</p>
-    <div class="row">${CARDS.map(c => cardHTML(c)).join("")}</div>`;
+  app.innerHTML = `<h2>The Binder</h2><p class="hint"><a href="#" onclick="title();return false">← Back</a> · ${CARDS.length} people in Guess Who order, then trainers</p>
+    <div class="row">${CARDS.map(c => cardHTML(c, { full: true })).join("")}</div><div class="row">${TRAINERS.map(t => trainerHTML(t)).join("")}</div>`;
+}
+let picked = [];
+function typePick() {
+  picked = [];
+  renderTypePick();
+}
+function renderTypePick() {
+  const n = CARDS.filter(c => picked.includes(c.type)).length;
+  app.innerHTML = `<h2>Build your deck: pick 1 or 2 energy types</h2><p class="hint">Your Energy Zone only makes these types. The deck fills with up to 2 copies of each person of those types, plus Gauntlet trainers.</p>
+    <div class="typepick">${Object.keys(TYPES).map(t => `<button class="${picked.includes(t) ? "on" : ""}" onclick="togglePick('${t}')">${typeOf(t)} <small>(${CARDS.filter(c => c.type === t).length})</small></button>`).join("")}</div>
+    <p><button class="big" onclick="start()" ${picked.length ? "" : "disabled"}>Shuffle up & play${picked.length ? ` (${n} people)` : ""}</button></p>`;
+}
+function togglePick(t) {
+  picked = picked.includes(t) ? picked.filter(x => x !== t) : picked.concat(t).slice(-2);
+  renderTypePick();
 }
 
-function draft() {
-  const deck = shuffle(CARDS);
-  S = { op: deck.slice(0, 3), pool: deck.slice(3, 9), picks: [] };
-  renderDraft();
+// ---------- game state ----------
+const inst = c => ({ ...c, max: c.hp, energy: [], uid: Math.random() });
+function newSide(types) {
+  return { types, deck: buildDeck(types, CARDS, TRAINERS), hand: [], active: null, bench: [], discard: [], points: 0,
+    energyNext: null, attached: false, supporter: false, retreated: false, bonus: 0, hotfix: 0 };
 }
-function renderDraft() {
-  app.innerHTML = `<div class="who">Opponent's team</div><div class="row op">${S.op.map(c => cardHTML(c, { cls: "mini" })).join("")}</div>
-    <h2>Draft: pick 3 (${S.picks.length}/3). First pick leads.</h2><p class="hint">Weakness = double damage. Counter their types.</p>
-    <div class="row">${S.pool.map((c, i) => cardHTML(c, { cls: "pickable " + (S.picks.includes(i) ? "active" : ""), onclick: `pick(${i})`, badge: S.picks.indexOf(i) + 1 || "" })).join("")}</div>`;
+function draw(s, n = 1) { for (let i = 0; i < n && s.deck.length; i++) s.hand.push(s.deck.shift()); }
+function log(s) { G.log.push(s); if (G.log.length > 3) G.log.shift(); }
+const other = who => who === "me" ? "op" : "me";
+const name = who => who === "me" ? "You" : "Opponent";
+
+function start() {
+  const opTypes = shuffle(Object.keys(TYPES)).slice(0, 1 + (Math.random() < .5 ? 1 : 0));
+  G = { me: newSide(picked), op: newSide(opTypes), turn: 0, who: null, first: null, log: [], phase: "setup", after: null };
+  for (const s of [G.me, G.op]) {
+    do { s.deck = shuffle(s.deck); s.hand = s.deck.slice(0, 5); } while (!s.hand.some(c => c.sig)); // Pocket: a person is guaranteed in the opening hand
+    s.deck = s.deck.slice(5);
+  }
+  G.first = Math.random() < .5 ? "me" : "op";
+  // opponent setup: highest HP person active, the rest to the bench
+  const people = G.op.hand.filter(c => c.sig).sort((a, b) => b.hp - a.hp);
+  G.op.active = inst(people[0]); G.op.bench = people.slice(1, 4).map(inst);
+  G.op.hand = G.op.hand.filter(c => !people.slice(0, 4).includes(c));
+  log(`Coin flip: ${G.first === "me" ? "you go" : "opponent goes"} first. Opponent's deck: ${opTypes.map(typeOf).join(" + ")}.`);
+  render();
 }
-function pick(i) {
-  S.picks = S.picks.includes(i) ? S.picks.filter(p => p !== i) : S.picks.concat(i);
-  S.picks.length === 3 ? battle() : renderDraft();
+function setupPick(i) { // choose starting active / bench from hand
+  const c = G.me.hand[i]; if (!c.sig) return;
+  if (!G.me.active) G.me.active = inst(c); else if (G.me.bench.length < 3) G.me.bench.push(inst(c)); else return;
+  G.me.hand.splice(i, 1); render();
+}
+function begin() { G.phase = "play"; beginTurn(G.first); }
+
+function beginTurn(who) {
+  G.who = who; G.turn++;
+  const s = G[who]; Object.assign(s, { attached: false, supporter: false, retreated: false, bonus: 0, hotfix: 0 });
+  const opening = G.turn === 1;
+  if (opening) { s.energyNext = null; log(`${name(who)} go${who === "me" ? "" : "es"} first: no draw, no energy this turn.`); }
+  else { draw(s); s.energyNext = rnd(s.types); log(`${name(who)} drew a card. Energy Zone: ${icon(s.energyNext)}.`); }
+  render();
+  if (who === "op") setTimeout(aiTurn, 900);
+}
+function endTurn() {
+  if (G.phase === "over") return;
+  G[G.who].energyNext = null; // unattached energy is lost
+  beginTurn(other(G.who));
 }
 
-function battle() {
-  S.me = S.picks.map(i => ({ ...S.pool[i], max: S.pool[i].hp }));
-  S.op = S.op.map(c => ({ ...c, max: c.hp }));
-  S.prev = "";
-  const first = Math.random() < .5;
-  S.busy = !first;
-  S.log = first ? "Coin flip: you go first. Pick an attack, or click a bench card to switch." : "Coin flip: opponent goes first.";
-  renderBattle();
-  if (!first) opTurn();
+// ---------- player actions ----------
+const myTurn = () => G.who === "me" && G.phase === "play";
+function playCard(i) {
+  if (!myTurn()) return;
+  const s = G.me, c = s.hand[i];
+  if (c.sig) { if (!s.active) s.active = inst(c); else if (s.bench.length < 3) s.bench.push(inst(c)); else return; log(`You played ${c.name}.`); }
+  else if (!applyTrainer(s, G.op, c, "You")) return;
+  s.hand.splice(i, 1); render();
 }
-function renderBattle() {
-  const side = (team, mine) => `<div class="row">
-    ${cardHTML(team[0], { cls: "active", attack: mine, busy: S.busy })}
-    <div class="bench">${team.slice(1).map((c, i) => cardHTML(c, { cls: "mini" + (mine && !S.busy ? " pickable" : ""), onclick: mine ? `swap(${i + 1})` : "" })).join("")}</div>
-  </div>`;
-  app.innerHTML = `<div class="who">Opponent</div>${side(S.op, false)}<div class="log"><small>${S.prev || ""}</small>${S.log}</div>${side(S.me, true)}
-    <div class="who">You · click a bench card to switch (uses your turn)</div>`;
+function attach(i) { // i = -1 active, else bench index
+  if (!myTurn()) return;
+  const s = G.me; if (!s.energyNext || s.attached) return;
+  const c = i < 0 ? s.active : s.bench[i]; c.energy.push(s.energyNext);
+  log(`You attached ${icon(s.energyNext)} to ${c.name}.`); s.energyNext = null; s.attached = true; render();
 }
-
-// att/def are teams; index 0 is active. Mutates hp, shifts out KO'd cards, returns the log line.
-function hit(att, def, atk) {
-  S.prev = S.log;
-  const a = att[0], d = def[0];
-  if (atk.flip && Math.random() < .5) return `${a.name} used ${atk.name}... tails. Nothing happens.`;
-  const r = damage(a, d, atk);
-  d.hp = r.hp;
-  if (atk.self) a.hp = Math.max(0, a.hp - atk.self);
-  let s = `${a.name} used ${atk.name}! ${r.super ? "It's super effective! " : ""}${r.dmg} dmg.`;
-  if (d.hp === 0) { def.shift(); s += ` ${d.name} is knocked out!`; if (def[0]) s += ` ${def[0].name} steps in.`; }
-  if (a.hp === 0) { att.shift(); s += ` ${a.name} took themselves down with it.`; }
-  return s;
+function retreat(i) {
+  if (!myTurn()) return;
+  const s = G.me, cost = Math.max(0, (s.active.retreat ?? 1) - s.hotfix);
+  if (s.retreated || s.active.energy.length < cost) return;
+  s.active.energy.splice(0, cost);
+  [s.active, s.bench[i]] = [s.bench[i], s.active]; s.retreated = true;
+  log(`${s.bench[i].name} retreats. ${s.active.name} steps in.`); render();
+}
+function promote(i) {
+  const s = G.me; s.active = s.bench.splice(i, 1)[0]; G.phase = "play";
+  log(`${s.active.name} steps in.`);
+  const f = G.after; G.after = null; f ? f() : render();
 }
 function attack(i) {
-  if (S.busy) return;
-  S.busy = true;
-  S.log = hit(S.me, S.op, S.me[0].attacks[i]);
-  if (end()) return;
-  renderBattle();
-  opTurn();
+  if (!myTurn()) return;
+  const s = G.me, m = moves(s.active)[i]; if (!canPay(s.active, m.cost)) return;
+  resolve("me", m);
+  if (G.phase === "over") return;
+  if (!s.active) { G.phase = "promote"; G.after = endTurn; render(); } else endTurn();
 }
-function swap(i) {
-  if (S.busy) return;
-  S.busy = true; S.prev = S.log;
-  [S.me[0], S.me[i]] = [S.me[i], S.me[0]];
-  S.log = `${S.me[0].name} steps in.`;
-  renderBattle();
-  opTurn();
+
+// ---------- rules ----------
+function resolve(who, m) {
+  const A = G[who], D = G[other(who)], a = A.active, d = D.active;
+  if (m.flip && Math.random() < .5) { log(`${a.name} used ${m.name}... tails. Nothing happens.`); return; }
+  const r = damage(a, d, m, A.bonus); d.hp = r.hp;
+  log(`${a.name} used ${m.name}! ${r.weak ? "Weakness, +20! " : ""}${A.bonus ? "Demo Day +10! " : ""}${r.dmg} damage.`);
+  if (m.self) a.hp = Math.max(0, a.hp - m.self);
+  if (d.hp === 0) ko(other(who), who);
+  if (a.hp === 0 && G.phase !== "over") ko(who, other(who));
 }
-function opTurn() {
-  setTimeout(() => {
-    const op = S.op[0];
-    const best = op.attacks.reduce((x, y) => ev(op, S.me[0], y) > ev(op, S.me[0], x) ? y : x);
-    S.log = hit(S.op, S.me, best);
-    S.busy = false;
-    if (!end()) renderBattle();
-  }, 1200);
+function ko(loserWho, scorerWho) {
+  const L = G[loserWho], S = G[scorerWho], c = L.active;
+  L.discard.push(c); L.active = null; S.points += points(c);
+  log(`${c.name} is knocked out! ${name(scorerWho)} get${scorerWho === "me" ? "" : "s"} ${points(c)} point${points(c) > 1 ? "s" : ""}.`);
+  if (S.points >= 3) return gameOver(scorerWho, "3 points");
+  if (!L.bench.length) return gameOver(scorerWho, `${name(loserWho).toLowerCase()} ${loserWho === "me" ? "have" : "has"} no cards left`);
+  if (loserWho === "op") { L.bench.sort((x, y) => y.hp - x.hp); L.active = L.bench.shift(); log(`${L.active.name} steps in.`); }
+  else G.phase = "promote";
 }
-function end() {
-  if (S.op.length && S.me.length) return false;
-  app.innerHTML = `<h1>${S.me.length ? "You win!" : "You lose."}</h1><p class="log">${S.log}</p>
-    <p><button class="big" onclick="draft()">Play Again</button> &nbsp; <button class="big alt" onclick="binder()">Find your card</button></p>`;
+function applyTrainer(s, o, t, who) {
+  const heal = n => { if (!s.active || s.active.hp === s.active.max) return false; s.active.hp = Math.min(s.active.max, s.active.hp + n); return true; };
+  if (t.kind === "supporter" && s.supporter) return false;
+  let ok = true;
+  switch (t.id) {
+    case "coffee": ok = heal(20); break;
+    case "office-hours": ok = heal(50); break;
+    case "slack-ping": { const i = s.deck.findIndex(c => c.sig); if (i < 0) ok = false; else s.hand.push(s.deck.splice(i, 1)[0]); break; }
+    case "hotfix": s.hotfix = 1; break;
+    case "weekly-writeup": ok = s.deck.length > 0; draw(s, 2); break;
+    case "demo-day": s.bonus = 10; break;
+    case "hiring-partner-intro": { if (!o.bench.length) { ok = false; break; } const i = Math.floor(Math.random() * o.bench.length); [o.active, o.bench[i]] = [o.bench[i], o.active]; break; }
+    case "stipend": ok = !!s.active; if (ok) s.active.energy.push(rnd(s.types)); break;
+  }
+  if (!ok) return false;
+  if (t.kind === "supporter") s.supporter = true;
+  log(`${who} played ${t.name}.`);
   return true;
+}
+function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; render(); }
+
+// ---------- opponent AI ----------
+function aiTurn() {
+  const s = G.op, me = G.me, later = (f, ms) => setTimeout(() => { if (G.phase !== "over") f(); }, ms);
+  // people to the field
+  s.hand.filter(c => c.sig).sort((a, b) => b.hp - a.hp).forEach(c => {
+    if (!s.active) s.active = inst(c); else if (s.bench.length < 3) s.bench.push(inst(c)); else return;
+    s.hand.splice(s.hand.indexOf(c), 1); log(`Opponent played ${c.name}.`);
+  });
+  // items, then one supporter
+  s.hand.filter(c => c.kind === "item").forEach(t => { if (t.id === "hotfix") return; if (applyTrainer(s, me, t, "Opponent")) s.hand.splice(s.hand.indexOf(t), 1); });
+  const want = t => ({ "office-hours": s.active.hp <= s.active.max - 50, "weekly-writeup": s.hand.length <= 2, "stipend": !canPay(s.active, s.active.sig.cost),
+    "demo-day": canPay(s.active, s.active.sig.cost), "hiring-partner-intro": me.bench.length > 0 && Math.random() < .3 })[t.id];
+  const sup = s.hand.find(c => c.kind === "supporter" && want(c));
+  if (sup && applyTrainer(s, me, sup, "Opponent")) s.hand.splice(s.hand.indexOf(sup), 1);
+  // energy: active until it can use its signature, then the bench card closest to its signature, then active
+  if (s.energyNext) {
+    const target = !canPay(s.active, s.active.sig.cost) ? s.active : (s.bench.find(c => !canPay(c, c.sig.cost)) || s.active);
+    target.energy.push(s.energyNext); log(`Opponent attached ${icon(s.energyNext)} to ${target.name}.`); s.energyNext = null; s.attached = true;
+  }
+  render();
+  later(() => {
+    const best = moves(s.active).reduce((x, y) => ev(s.active, me.active, y, s.bonus) > ev(s.active, me.active, x, s.bonus) ? y : x);
+    if (ev(s.active, me.active, best, s.bonus) > 0) resolve("op", best); else log("Opponent ends the turn.");
+    render();
+    later(endTurn, 1100);
+  }, 900);
+}
+
+// ---------- board ----------
+function render() {
+  if (G.phase === "over") {
+    app.innerHTML = `<div class="over"><h1>${G.winner === "me" ? "You win!" : "You lose."}</h1><p class="log">${G.why}. ${G.log.at(-1)}</p>
+      <p><button class="big" onclick="typePick()">Play Again</button> &nbsp; <button class="big alt" onclick="binder()">Find your card</button></p></div>`;
+    return;
+  }
+  const me = G.me, op = G.op, mine = myTurn();
+  if (G.phase === "setup") {
+    app.innerHTML = `<h2>${me.active ? "Bench up to 3 more, or start" : "Choose your active card"}</h2><p class="hint">Click a person in your hand. ${G.log[0]}</p>
+      <div class="row">${me.active ? cardHTML(me.active, { cls: "active" }) : "<p>—</p>"}<div class="bench">${me.bench.map(c => cardHTML(c, { cls: "mini" })).join("")}</div></div>
+      <div class="hand">${me.hand.map((c, i) => c.sig ? cardHTML(c, { cls: "mini pickable", onclick: `setupPick(${i})` }) : trainerHTML(c)).join("")}</div>
+      <p><button class="big" onclick="begin()" ${me.active ? "" : "disabled"}>Start battle</button></p>`;
+    return;
+  }
+  const canAttach = mine && me.energyNext && !me.attached;
+  const rc = me.active ? Math.max(0, (me.active.retreat ?? 1) - me.hotfix) : 0;
+  const canRetreat = mine && me.active && !me.retreated && me.active.energy.length >= rc && G.phase === "play";
+  const benchSlot = (c, i) => `<div class="slot">${cardHTML(c, { cls: "mini" })}<div class="acts">
+      ${G.phase === "promote" ? `<button onclick="promote(${i})">Step in</button>` : ""}
+      ${canAttach ? `<button onclick="attach(${i})">＋${icon(me.energyNext)}</button>` : ""}
+      ${canRetreat ? `<button onclick="retreat(${i})">Retreat (${rc})</button>` : ""}</div></div>`;
+  app.innerHTML = `<div class="board">
+    <div class="status">Opponent · <b>${dots(op.points)}</b> · hand ${op.hand.length} · deck ${op.deck.length} · ${op.types.map(icon).join("")}</div>
+    <div class="row">${op.active ? cardHTML(op.active, { cls: "active" }) : ""}<div class="bench">${op.bench.map(c => cardHTML(c, { cls: "mini" })).join("")}</div></div>
+    <div class="log">${G.log.map((l, i) => i < G.log.length - 1 ? `<small>${l}</small>` : l).join("")}</div>
+    ${G.phase === "promote" ? `<h3>Your active card was knocked out — choose who steps in.</h3>` : ""}
+    <div class="row">
+      ${me.active ? `<div class="slot">${cardHTML(me.active, { cls: "active", attack: true, busy: !mine || G.phase !== "play" })}<div class="acts">${canAttach ? `<button onclick="attach(-1)">＋${icon(me.energyNext)}</button>` : ""}</div></div>` : ""}
+      <div class="bench">${me.bench.map(benchSlot).join("")}</div>
+    </div>
+    <div class="status">You · <b>${dots(me.points)}</b> · deck ${me.deck.length} · ${me.supporter ? "supporter used" : "supporter available"}
+      ${mine && G.phase === "play" ? ` · <button class="acts" onclick="endTurn()" style="font:13px system-ui;padding:4px 10px;border-radius:6px;border:0;background:#ffcc33;cursor:pointer">End turn</button>` : ` · <i>${G.phase === "promote" ? "" : "opponent's turn…"}</i>`}</div>
+    <div class="hand">${handHTML(me, mine && G.phase === "play")}</div>
+  </div>
+  <div class="zone"><div>ENERGY ZONE</div>
+    <div class="cur ${me.energyNext ? "" : "dim"}">${me.energyNext ? icon(me.energyNext) : "—"}</div>
+    <div>${me.energyNext ? (me.attached ? "attached" : "click ＋ on a card") : (me.attached ? "attached this turn" : "next turn")} · deck types ${me.types.map(icon).join("")}</div></div>`;
 }
 
 // Holo pointer tracking (math from pokemon-cards-css Card.svelte, minus the springs).

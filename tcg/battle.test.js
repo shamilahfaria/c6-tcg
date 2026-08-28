@@ -1,27 +1,37 @@
 // node battle.test.js
 const assert = require("assert");
-const { WEAK, damage } = require("./battle.js");
+global.window = {}; require("./cards.js");
+const { WEAK, canPay, damage, ev, points, buildDeck } = require("./battle.js");
+const { CARDS, TRAINERS } = window;
 
-const fire = { type: "fire", hp: 90 };
-const water = { type: "water", hp: 90 };
-const atk = { name: "x", dmg: 30 };
+const fire = { type: "fire", hp: 90, energy: ["fire", "fire", "water"] };
+const water = { type: "water", hp: 90, energy: [] };
 
-// normal hit
-assert.deepStrictEqual(damage(fire, fire, atk), { dmg: 30, super: false, hp: 60 });
-// super effective: water hits fire for 2x
-assert.deepStrictEqual(damage(water, fire, atk), { dmg: 60, super: true, hp: 30 });
-// reverse direction is NOT super effective (one weakness per type)
-assert.strictEqual(damage(fire, water, atk).super, false);
-// KO clamps at 0
-assert.strictEqual(damage(water, { type: "fire", hp: 50 }, atk).hp, 0);
-// every type has exactly one weakness and the map is a closed cycle over the 6 types
+// energy costs: own type counts toward t, anything counts toward c
+assert.ok(canPay(fire, { t: 2 }));
+assert.ok(canPay(fire, { t: 2, c: 1 }));
+assert.ok(!canPay(fire, { t: 3 }), "water energy is not fire");
+assert.ok(!canPay(fire, { t: 2, c: 2 }));
+// weakness is +20 flat (Pocket), one direction only
+assert.deepStrictEqual(damage(water, fire, { dmg: 30 }), { dmg: 50, weak: true, hp: 40 });
+assert.strictEqual(damage(fire, water, { dmg: 30 }).weak, false);
+// Demo Day bonus stacks; KO clamps at 0
+assert.strictEqual(damage(water, { type: "fire", hp: 55 }, { dmg: 30 }, 10).hp, 0);
+// ev: unaffordable = 0, flip halves
+assert.strictEqual(ev(fire, water, { cost: { t: 3 }, dmg: 100 }), 0);
+assert.strictEqual(ev(fire, water, { cost: { t: 2 }, dmg: 70, flip: true }), 35);
+// points and weakness cycle
+assert.strictEqual(points({ ex: true }), 2); assert.strictEqual(points({}), 1);
 assert.deepStrictEqual(Object.keys(WEAK).sort(), Object.values(WEAK).sort());
+// deck: 20 cards, ≤2 copies, only chosen types, at least one person
+let i = 0; const rand = () => ((i += 7) % 11) / 11;
+const deck = buildDeck(["fire"], CARDS, TRAINERS, rand);
+assert.strictEqual(deck.length, 20);
+const people = deck.filter(c => c.sig);
+assert.ok(people.length >= 8 && people.every(c => c.type === "fire"));
+const counts = {}; deck.forEach(c => counts[c.id] = (counts[c.id] || 0) + 1);
+assert.ok(Object.values(counts).every(n => n <= 2));
+// data sanity: every card has a common move for its type and a signature with a cost
+CARDS.forEach(c => { assert.ok(window.COMMON[c.type], c.id); assert.ok(c.sig && c.sig.cost, c.id); });
 
 console.log("battle.test.js: all passed");
-
-// expected value: a coin-flip 70 is worth 35, so a sure 40 beats it; super-effective flip 70 (=70) beats both
-const { ev } = require("./battle.js");
-assert.strictEqual(ev(fire, fire, { dmg: 70, flip: true }), 35);
-assert.ok(ev(fire, fire, { dmg: 40 }) > ev(fire, fire, { dmg: 70, flip: true }));
-assert.strictEqual(ev(water, fire, { dmg: 70, flip: true }), 70);
-console.log("ev: ok");
