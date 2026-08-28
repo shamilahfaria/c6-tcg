@@ -1,22 +1,36 @@
 // Battle screen: render() for setup / play / promote / over phases. Owned by the board-layout work.
 // Actions available: playCard(i) attach(i|-1) retreat(i) promote(i) attack(i) endTurn() setupPick(i) begin() typePick() binder()
-// Layout: Pokémon TCG Pocket battle screen adapted to landscape. Designed at 1280×720 logical px, the .arena is zoomed to fit the window.
+// Layout mirrors Pokémon TCG Pocket's battle screen, vertically stacked (opp hand → opp bench → opp active → centre → my active → my bench → my hand)
+// inside a 1280×720 .board; the .arena is zoomed to fit the window (fit()).
 const app = document.getElementById("app");
-const UI = { arm: false, retreat: false }; // board-only state: energy orb armed by click, retreat chooser open
+const UI = { arm: false, panel: -1, retreat: false, menu: false }; // board-only state. panel = the G.turn it was opened on, so it closes itself next turn
 
 const back = () => typeof cardBackHTML === "function" ? cardBackHTML("") : `<div class="back"></div>`;
-const stack = s => `<div class="deck"><div class="cw">${back()}</div><div class="cw">${back()}</div><div class="cw">${back()}</div><b>${s.deck.length}</b></div>`;
+const stack = (s, cls) => `<div class="deck ${cls}"><div class="cw">${back()}</div><div class="cw">${back()}</div><div class="cw">${back()}</div><b>${s.deck.length}</b></div>`;
 const pts = n => `<span class="pts">${[0, 1, 2].map(k => `<i class="${k < n ? "on" : ""}"></i>`).join("")}</span>`;
-const who = (s, label, extra = "") => `<div class="who"><b>${label}</b>${pts(s.points)} <span>${s.types.map(icon).join("")}</span>${extra ? `<small>${extra}</small>` : ""}</div>`;
+const slot = (cls, inner, attrs = "") => `<div class="slot ${cls} ${inner ? "" : "empty"}" ${attrs}>${inner}</div>`;
 
-function handHTML(s, act) { // act: "play" | "setup" | null (not interactive). Cards overlap more as the hand grows (510 logical px wide, 121 per card at zoom .55).
-  const n = s.hand.length, m = Math.min(92, n > 1 ? (510 - 121) / (n - 1) : 92) / .55 - 220;
+// a card on the field, Pocket-style: big HP number + bar floating above its top-right, energy icons at its bottom-left, both outside the card
+const field = (c, attrs = "") => `<div class="fc" ${attrs}>${cardHTML(c, { inplay: true })}
+  <div class="hpf ${c.hp * 3 <= c.max ? "low" : ""}"><b>${c.hp}</b><i><u style="width:${c.hp / c.max * 100}%"></u></i></div>
+  ${c.energy.length ? `<div class="en">${c.energy.map(pip).join("")}</div>` : ""}</div>`;
+
+function handHTML(s, act) { // act: "play" | "setup" | null (not interactive). Fanned: cards overlap more as the hand grows (600 board px wide, 121 per card at zoom .55).
+  const n = s.hand.length, m = Math.min(96, n > 1 ? (600 - 121) / (n - 1) : 96) / .55 - 220, mid = (n - 1) / 2;
   return `<div class="hand" style="--m:${m}px">${s.hand.map((c, i) => {
-    const on = act && (c.sig || act === "play"), fn = act === "setup" ? `setupPick(${i})` : `playCard(${i})`;
-    return `<div class="hc ${c.sig ? "" : "tr"} ${on ? "on" : ""}" ${on ? `data-drag="${c.sig ? "person" : "trainer"}" data-i="${i}"` : ""}>${
+    const on = act && (c.sig || act === "play"), fn = act === "setup" ? `setupPick(${i})` : c.sig ? `playCard(${i})` : `playTrainer(${i})`;
+    return `<div class="hc ${c.sig ? "" : "tr"} ${on ? "on" : ""}" style="--r:${(i - mid) * 3}deg;--y:${Math.abs(i - mid) * 6}px" ${on ? `data-drag="${c.sig ? "person" : "trainer"}" data-i="${i}"` : ""}>${
       c.sig ? cardHTML(c, { onclick: on ? fn : "" }) : trainerHTML(c, { onclick: on ? fn : "" })}</div>`;
   }).join("")}</div>`;
 }
+
+function playTrainer(i) { // Pocket: the trainer is shown big in the centre for a beat so its text can be read, then it resolves
+  if (!myTurn() || !G.me.hand[i]) return;
+  const d = document.createElement("div"); d.className = "preview"; d.style.zoom = arena().style.zoom; d.innerHTML = trainerHTML(G.me.hand[i]);
+  document.body.append(d); setTimeout(() => { d.remove(); playCard(i); }, 800);
+}
+
+function quit() { G.phase = "over"; UI.menu = false; } // leaving mid-battle: "over" is what the engine's AI timers check before acting, so nothing re-renders the board later
 
 function render() {
   const me = G.me, op = G.op, mine = myTurn(), setup = G.phase === "setup", promo = G.phase === "promote";
@@ -25,47 +39,51 @@ function render() {
   const canRetreat = mine && me.active && !me.retreated && me.active.energy.length >= rc && me.bench.length > 0;
   if (!canAttach) UI.arm = false;
   if (!canRetreat) UI.retreat = false;
-  const tap = i => promo ? `onclick="promote(${i})"` : UI.arm ? `onclick="UI.arm=false;attach(${i})"` : "";
+  const panel = UI.panel === G.turn && me.active && G.phase === "play";
+  const tap = i => promo ? `onclick="promote(${i})"` : UI.arm ? `onclick="UI.arm=false;attach(${i})"` : i < 0 && !setup ? `onclick="UI.panel=G.turn;render()"` : "";
+  const fd = c => setup ? `<div class="cw">${back()}</div>` : field(c); // opponent's cards stay face-down until the battle starts
 
-  const opHalf = `<div class="half op">${stack(op)}${who(op, "Opponent")}
-    <div class="bench">${[0, 1, 2].map(i => op.bench[i] ? `<div class="slot"><div class="cw">${setup ? back() : cardHTML(op.bench[i])}</div></div>` : `<div class="slot empty"></div>`).join("")}</div>
-    ${op.active ? `<div class="slot act"><div class="cw a">${setup ? back() : cardHTML(op.active, { cls: "active" })}</div></div>` : `<div class="slot act empty"></div>`}
-    <div class="ophand">${op.hand.map(() => `<div class="cw">${back()}</div>`).join("")}<b>${op.hand.length}</b></div></div>`;
+  const opSide = `<div class="ophand">${op.hand.map(() => `<div class="cw">${back()}</div>`).join("")}<b>${op.hand.length}</b></div>
+    <div class="who op">${pts(op.points)}<b>Opponent</b></div>${stack(op, "op")}
+    <div class="bench op">${[0, 1, 2].map(i => slot("", op.bench[i] ? fd(op.bench[i]) : "")).join("")}</div>
+    ${slot("act op", op.active ? fd(op.active) : "")}`;
 
-  const myActive = me.active
-    ? `<div class="slot act" data-drop="active"><div class="cw a" data-drop="card" data-i="-1" ${tap(-1)}>${cardHTML(me.active, { cls: "active", attack: true, busy: !mine })}</div></div>`
-    : `<div class="slot act empty tgt" data-drop="active"><span>${setup ? "Place your active card" : promo ? "Choose who steps in" : ""}</span></div>`;
-  const myBench = `<div class="bench">${[0, 1, 2].map(i => me.bench[i]
-    ? `<div class="slot" data-drop="bench" data-i="${i}"><div class="cw ${promo ? "pick" : ""}" data-drop="card" data-i="${i}" ${tap(i)}>${cardHTML(me.bench[i])}</div></div>`
-    : `<div class="slot empty ${me.active ? "tgt" : ""}" data-drop="bench" data-i="${i}"></div>`).join("")}</div>`;
+  const mySide = `${me.active ? slot("act me", field(me.active, `data-drop="card" data-i="-1" ${tap(-1)}`), `data-drop="active"`) : slot("act me tgt", "", `data-drop="active"`)}
+    <div class="bench me">${[0, 1, 2].map(i => me.bench[i]
+      ? slot(promo ? "pick" : "", field(me.bench[i], `data-drop="card" data-i="${i}" ${tap(i)}`), `data-drop="bench" data-i="${i}"`)
+      : slot(me.active ? "tgt" : "", "", `data-drop="bench" data-i="${i}"`)).join("")}</div>
+    ${stack(me, "me")}<div class="who me"><b>You</b>${pts(me.points)}</div>`;
 
-  const ctl = `<div class="ctl">
-    ${setup ? `<button class="btn go" onclick="begin()" ${me.active ? "" : "disabled"}>Battle!</button><div class="wait">${me.active ? "Bench up to 3 more, or go" : "Drag a person to the active slot"}</div>` : ""}
-    ${mine ? `<button class="btn end" onclick="endTurn()">End turn</button>` : ""}
-    ${canRetreat ? `<button class="btn" onclick="UI.retreat=!UI.retreat;render()">Retreat · ${"⚪".repeat(rc) || "free"}</button>` : ""}
-    ${UI.retreat ? `<div class="chooser"><small>Retreat for ${"⚪".repeat(rc) || "free"} — who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
-    ${!mine && !setup && G.phase === "play" ? `<div class="wait">Opponent's turn…</div>` : ""}</div>`;
+  const msg = setup ? (me.active ? "Bench up to 3 more, then Battle!" : "Put a person in the Active Spot.") : promo ? "Choose who steps in." : G.log.at(-1) || "";
+  const pills = `<div class="msg"><i></i>${msg}</div>
+    ${setup ? `<div class="first">${G.first === "me" ? "You are going first" : "Opponent goes first"}</div>` : `<div class="turn">Current turn:<b>${G.turn}</b></div>`}
+    <div class="side">${setup ? (me.active ? `<button class="pill go" onclick="begin()">Battle!</button>` : "") : mine ? `<button class="pill" onclick="endTurn()">End Turn</button>` : ""}</div>`;
 
   const e = me.energyNext, live = canAttach ? `data-drag="energy" onclick="UI.arm=!UI.arm;render()"` : "";
-  const zone = `<div class="zone"><div class="lbl">Energy Zone</div>
-    <div class="orb ${e || "off"} ${canAttach ? "live" : ""} ${UI.arm ? "armed" : ""}" ${live} title="${canAttach ? "Drag onto a card, or click then pick a card" : ""}">${e ? icon(e) : ""}</div>
-    <div class="hint">${e ? (me.attached ? "attached" : canAttach ? (UI.arm ? "pick a card" : "drag to a card") : "") : me.attached ? "attached this turn" : setup ? "" : "next turn"}</div>
-    <div class="next"><div class="orb sm ${me.energyPreview}">${icon(me.energyPreview)}</div>next</div>
-    <div class="types">${me.types.map(icon).join(" ")}</div></div>`;
+  const dial = `<div class="zone ${canAttach ? "live" : ""} ${UI.arm ? "armed" : ""}" title="${canAttach ? "Drag onto a card, or click then pick a card" : e ? "" : "Next turn's energy"}">
+    <div class="orb ${e || "off"}" ${live}>${e ? icon(e) : ""}</div><div class="orb sm ${me.energyPreview}">${icon(me.energyPreview)}</div></div>`;
 
-  const meHalf = `<div class="half me" data-drop="half">${myActive}${myBench}${stack(me)}${who(me, "You", setup ? "" : me.supporter ? "supporter used" : "supporter available")}${ctl}${zone}
-    ${handHTML(me, setup ? "setup" : mine ? "play" : null)}</div>`;
+  const menu = `<button class="mbtn" onclick="UI.menu=!UI.menu;render()" aria-label="Menu">☰</button>
+    ${UI.menu ? `<div class="mpanel"><button class="pill" onclick="quit();binder()">Binder</button><button class="pill" onclick="quit();title()">Home</button></div>` : ""}`;
+
+  const apanel = panel ? `<div class="apanel" onclick="if(event.target===this){UI.panel=-1;UI.retreat=false;render()}"><div class="ap">
+    <div class="big">${cardHTML(me.active, { attack: true, busy: !mine })}</div>
+    <div class="acts">${mine ? "" : `<div class="wait">Opponent's turn…</div>`}
+      ${canRetreat ? `<button class="pill sm" onclick="UI.retreat=!UI.retreat;render()">Retreat ${pip().repeat(rc) || "· free"}</button>` : ""}
+      ${UI.retreat ? `<div class="chooser"><small>Who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;UI.panel=-1;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
+      <button class="pill sm" onclick="UI.panel=-1;UI.retreat=false;render()">Close</button></div></div></div>` : "";
 
   const over = G.phase === "over" ? `<div class="over"><div class="panel"><h1>${G.winner === "me" ? "You win!" : "You lose."}</h1>
     <p>You ${pts(me.points)} &nbsp;·&nbsp; Opponent ${pts(op.points)}</p><p class="why">${G.why}. ${G.log.at(-1) || ""}</p>
-    <p><button class="big" onclick="typePick()">Play again</button> &nbsp; <button class="big alt" onclick="binder()">Binder</button></p></div></div>` : "";
+    <p><button class="pill" onclick="typePick()">Play again</button> &nbsp; <button class="pill sm" onclick="binder()">Binder</button></p></div></div>` : "";
 
-  app.innerHTML = `<div class="arena ${G.phase} ${UI.arm ? "armed" : ""}"><div class="line"></div>${opHalf}
-    <div class="log">${G.log.map((l, i) => `<div class="${i === G.log.length - 1 ? "now" : ""}">${l}</div>`).join("")}</div>${meHalf}${over}</div>`;
+  app.innerHTML = `<div class="arena ${G.phase} ${UI.arm ? "armed" : ""}"><div class="board">
+    <div class="rim"><div class="felt"><div class="court"></div></div></div><div class="tzone" data-drop="trainer"></div>
+    ${opSide}${mySide}${pills}${dial}${menu}${handHTML(me, setup ? "setup" : mine ? "play" : null)}${apanel}${over}</div></div>`;
   fit();
 }
 
-function fit() { // scale the 1280×720 design to the window; the arena fills the viewport in logical px
+function fit() { // scale the 1280×720 design to the window; the arena fills the viewport in logical px and centres the stage
   const a = app.querySelector(".arena"); if (!a) return;
   const z = Math.min(innerWidth / 1280, innerHeight / 720, 1.5);
   a.style.zoom = z; a.style.width = innerWidth / z + "px"; a.style.height = innerHeight / z + "px";
@@ -73,7 +91,7 @@ function fit() { // scale the 1280×720 design to the window; the arena fills th
 addEventListener("resize", fit);
 
 // ---- Drag & drop (Pointer Events). Sources: [data-drag=person|trainer|energy][data-i]. Clicks still work: the drag only starts after 6px.
-// Targets: people → .slot.tgt (empty active / empty bench); energy → [data-drop=card]; trainers → anywhere on .half.me except the hand.
+// Targets: people → .slot.tgt (empty active / empty bench); energy → [data-drop=card]; trainers → .tzone, the teal centre overlay shown while dragging.
 let D = null, swallow = false;
 const zoomOf = el => { let z = 1; for (let n = el; n; n = n.parentElement) z *= parseFloat(getComputedStyle(n).zoom) || 1; return z; };
 const arena = () => app.querySelector(".arena");
@@ -83,7 +101,7 @@ function dropAt(e, kind) {
   if (!t) return null;
   if (kind === "energy") return t.dataset.drop === "card" ? t : null;
   if (kind === "person") return t.classList.contains("tgt") ? t : null;
-  return under.closest(".hand, .zone, .ctl") ? null : t.closest(".half.me");
+  return t.dataset.drop === "trainer" ? t : null;
 }
 
 document.addEventListener("pointerdown", e => {
@@ -101,7 +119,7 @@ document.addEventListener("pointermove", e => {
     try { D.el.setPointerCapture(e.pointerId); } catch {}
     D.ghost = document.createElement("div"); D.ghost.className = "ghost";
     D.ghost.style.cssText = `left:${D.left}px;top:${D.top}px`;
-    D.ghost.innerHTML = `<div style="zoom:${D.z}">${D.el.innerHTML}</div>`;
+    D.ghost.innerHTML = `<div style="zoom:${D.z}">${D.kind === "energy" ? D.el.outerHTML : D.el.innerHTML}</div>`;
     document.body.append(D.ghost); D.el.classList.add("lifted");
     arena()?.classList.add("drag", "drag-" + D.kind);
   }
@@ -125,7 +143,8 @@ function endDrag(e, ok) {
   d.ghost.remove(); d.el.classList.remove("lifted"); FX.play("click");
   if (d.kind === "energy") { UI.arm = false; attach(+t.dataset.i); }
   else if (d.kind === "person" && G.phase === "setup") setupPick(d.i);
-  else playCard(d.i);
+  else if (d.kind === "person") playCard(d.i);
+  else playTrainer(d.i);
 }
 document.addEventListener("pointerup", e => endDrag(e, true));
 document.addEventListener("pointercancel", e => endDrag(e, false));
