@@ -1,5 +1,5 @@
 // Visual + audio effects. Owned by the FX work. Every function is fire-and-forget and must never throw.
-// Engine calls: FX.banner(text) FX.coin(heads) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
+// Engine calls: FX.banner(text) FX.coin(heads, label?) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
 // All visuals are overlays appended to <body>, positioned from the target's rect at call time: the engine re-renders #app right after.
 (() => {
   const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -115,9 +115,9 @@
     banner: safe(text => {
       spawn("fx-banner", `<span>${esc(text)}</span>`, 900); FX.play("banner");
     }),
-    coin: safe(heads => {
+    coin: safe((heads, label) => {
       spawn("fx-coin " + (heads ? "heads" : "tails"),
-        `<div class="toss"><div class="coin"><div class="f h"></div><div class="f t">G</div></div><div class="shadow"></div></div><div class="lbl">${heads ? "Heads!" : "Tails…"}</div>`, 1900);
+        `<div class="toss"><div class="coin"><div class="f h"></div><div class="f t"></div></div><div class="shadow"></div></div><div class="lbl">${esc(label || (heads ? "Heads!" : "Tails…"))}</div>`, label ? 2400 : 1900);
       FX.play("coin");
     }),
     hit: safe((el, dmg, o = {}) => {

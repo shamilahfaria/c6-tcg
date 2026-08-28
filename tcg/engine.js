@@ -27,6 +27,7 @@ function start() {
     s.deck = s.deck.slice(5);
   }
   G.first = Math.random() < .5 ? "me" : "op";
+  FX.coin(G.first === "me", G.first === "me" ? "You go first" : "Opponent goes first"); // opening toss, shown over the setup screen
   // opponent setup: highest HP person active, the rest to the bench
   const people = G.op.hand.filter(c => c.sig).sort((a, b) => b.hp - a.hp);
   G.op.active = inst(people[0]); G.op.bench = people.slice(1, 4).map(inst);
