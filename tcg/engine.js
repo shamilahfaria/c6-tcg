@@ -166,6 +166,7 @@ function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; ren
 
 
 function aiTurn() {
+  if (!G || G.phase !== "play" || G.who !== "op") return;
   const s = G.op, me = G.me, later = (f, ms) => setTimeout(() => { if (G.phase !== "over") f(); }, ms);
   // people to the field
   s.hand.filter(c => c.sig).sort((a, b) => b.hp - a.hp).forEach(c => {
