@@ -42,6 +42,13 @@ function setupPick(i) { // choose starting active / bench from hand
   G.me.hand.splice(i, 1); render();
 }
 
+function resetSetup() { // setup phase only: return every placed person to the hand so the player can re-place from scratch
+  if (G.phase !== "setup") return;
+  const s = G.me, back = c => s.hand.push(CARDS.find(x => x.id === c.id) || c);
+  [s.active, ...s.bench].filter(Boolean).forEach(back);
+  s.active = null; s.bench = [];
+  render();
+}
 function begin() { G.phase = "play"; try { FX.music.start(); } catch {} beginTurn(G.first); }
 
 

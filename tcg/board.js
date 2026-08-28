@@ -64,7 +64,7 @@ function render() {
   const msg = setup ? (me.active ? "Bench up to 3 more, then Battle!" : "Put a person in the Active Spot.") : promo ? "Choose who steps in." : G.log.at(-1) || "";
   const pills = `<div class="msg"><i></i>${msg}</div>
     ${setup ? `<div class="first">${G.first === "me" ? "You are going first" : "Opponent goes first"}</div>` : `<div class="turn">Current turn:<b>${G.turn}</b></div>`}
-    <div class="side">${setup ? (me.active ? `<button class="pill go" onclick="begin()">Battle!</button>` : "") : mine ? `<button class="pill" onclick="endTurn()">End Turn</button>` : ""}</div>`;
+    <div class="side">${setup ? (me.active ? `<button class="pill sm" onclick="resetSetup()">Reset</button><button class="pill go" onclick="begin()">Battle!</button>` : "") : mine ? `<button class="pill" onclick="endTurn()">End Turn</button>` : ""}</div>`;
 
   const e = me.energyNext, live = canAttach ? `data-drag="energy" onclick="UI.arm=!UI.arm;render()"` : "";
   const dial = `<div class="zone ${canAttach ? "live" : ""} ${UI.arm ? "armed" : ""}" title="${canAttach ? "Drag onto a card, or click then pick a card" : e ? "" : "Next turn's energy"}">
