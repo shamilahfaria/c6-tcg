@@ -1,5 +1,6 @@
 // Card faces: cardHTML(c, o), trainerHTML(t, o), cardBackHTML(cls) + shared helpers + holo pointer tracking. Owned by the card-face work.
-// Contract: cardHTML(c, {cls, onclick, badge, attack, busy, full}) renders attack rows as <button class="atk" onclick="attack(i)"> when o.attack.
+// Contract: cardHTML(c, {cls, onclick, badge, attack, busy, full, inplay}) renders attack rows as <button class="atk" onclick="attack(i)"> when o.attack.
+//   inplay: no HP text in the header (type symbol stays), no attached-energy pips, no damage bar — the board draws HP + energy outside the card (Pocket style).
 // Card is designed at 220px wide (holo.css); everything inside is px, scaled by CSS `zoom` on wrappers (.mini = .5).
 const rnd = a => a[Math.floor(Math.random() * a.length)];
 
@@ -20,11 +21,15 @@ const dots = n => "●".repeat(n) + "○".repeat(Math.max(0, 3 - n));
 
 const rarity = c => "◆".repeat(c.type === "normal" ? 1 : c.ex ? 4 : c.hp >= 110 ? 3 : 2);
 
+// name always fits on one line: font-size stepped by length. steps = [[maxLen, px], ...]; ex cards lose 2.5px (badge + 3-digit HP).
+const nm = (name, steps, minus = 0) => `<span class="nm" style="font-size:${(steps.find(([n]) => name.length <= n) || steps.at(-1))[1] - minus}px">${name}</span>`;
+const NM_CARD = [[9, 15], [12, 13], [15, 11.5], [99, 10]], NM_TRAINER = [[12, 16], [18, 14], [24, 12], [99, 10]];
+
 function cardHTML(c, o = {}) {
-  const max = c.max || c.hp, energy = c.energy || [];
+  const max = c.max || c.hp, energy = o.inplay ? [] : c.energy || [];
   const initials = c.name.split(" ").map(w => w[0]).join("").slice(0, 2);
   const rows = moves(c).map((m, i) => {
-    const rider = [m.flip ? "🪙 coin flip" : "", m.self ? `${m.self} self` : "", m.text || ""].filter(Boolean).join(" · ");
+    const rider = [m.flip ? `<i class="pip flip">?</i>flip` : "", m.self ? `${m.self} self` : "", m.text || ""].filter(Boolean).join(" · ");
     const inner = `<span class="cost">${pips(m.cost, c.type)}</span><span class="atkn">${m.name}${rider ? `<small>${rider}</small>` : ""}</span><b>${m.dmg}</b>`;
     const ok = o.attack && !o.busy && canPay(c, m.cost);
     return o.attack ? `<button class="atk" onclick="attack(${i})" ${ok ? "" : "disabled"}>${inner}</button>` : `<div class="atk">${inner}</div>`;
@@ -33,14 +38,14 @@ function cardHTML(c, o = {}) {
     ${o.badge ? `<b class="n">${o.badge}</b>` : ""}
     <div class="card__rotator">
       <div class="card__front"><div class="face">
-        <div class="hd"><span class="nm">${c.name}${c.ex ? `<em class="exb">ex</em>` : ""}</span>
-          <span class="hp ${c.hp < max ? "hurt" : ""}"><small>HP</small>${c.hp}</span><i class="tc ${c.type}">${icon(c.type)}</i></div>
+        <div class="hd"><span class="basic">Basic</span>${nm(c.name, NM_CARD, c.ex ? 2.5 : 0)}${c.ex ? `<em class="exb">ex</em>` : ""}
+          ${o.inplay ? "" : `<span class="hp ${c.hp < max ? "hurt" : ""}"><small>HP</small>${c.hp}</span>`}<i class="tc ${c.type}">${icon(c.type)}</i></div>
         <div class="pic">${initials}${c.photo ? `<img src="${c.photo}" alt="" onerror="this.remove()">` : ""}
-          ${c.hp < max ? `<div class="bar"><i style="width:${c.hp / max * 100}%"></i></div>` : ""}</div>
+          ${!o.inplay && c.hp < max ? `<div class="bar"><i style="width:${c.hp / max * 100}%"></i></div>` : ""}</div>
         <div class="type">${energy.length ? `<span class="energy">${energy.map(pip).join("")}</span>` : ""}${typeOf(c.type)}${o.full ? `<span class="real">${c.real}</span>` : ""}</div>
         <div class="atks">${rows}</div>
         ${o.full ? `<div class="flavor">${c.flavor}</div>` : ""}
-        <div class="ft"><span>Weakness ${pip(WEAK[c.type])} +20</span><span>Retreat ${pip().repeat(c.retreat ?? 1) || "—"}</span></div>
+        <div class="ft"><span>weakness ${pip(WEAK[c.type])} +20</span><span>retreat ${pip().repeat(c.retreat ?? 1) || "—"}</span></div>
         <div class="rr"><span>${rarity(c)}</span><span>Gauntlet C6 · ${c.id}</span></div>
       </div></div>
       <div class="card__shine"></div>
@@ -50,11 +55,12 @@ function cardHTML(c, o = {}) {
 }
 
 function trainerHTML(t, o = {}) {
-  const kind = t.kind === "item" ? "Item" : t.staff ? "Supporter · Staff" : "Supporter";
+  const sup = t.kind !== "item";
   return `<div class="trainer ${t.kind} ${t.staff ? "staff" : ""} ${o.cls || ""}" ${o.onclick ? `onclick="${o.onclick}"` : ""}><div class="face">
-    <div class="kind">${kind}</div><b class="nm">${t.name}</b>
+    <div class="hd"><span class="kind">${sup ? "Supporter" : "Item"}</span><span class="tl">Trainer</span></div>${nm(t.name, NM_TRAINER)}
     <div class="pic ${t.photo ? "" : "ph"}">${t.photo ? `<img src="${t.photo}" alt="" onerror="this.remove()">` : `<img src="assets/shield.png" alt="">`}</div>
     <p>${t.text}</p>
+    <small class="note">${sup ? "You may play only 1 Supporter card during your turn." : "You may play any number of Item cards during your turn."}</small>
     <div class="rr"><span>◆</span><span>Gauntlet C6 · ${t.id}</span></div>
   </div></div>`;
 }
