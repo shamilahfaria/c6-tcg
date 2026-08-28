@@ -1,0 +1,145 @@
+/*
+  Holographic card effect vendored + trimmed from
+  https://github.com/simeydotme/pokemon-cards-css (MIT, by Simon Goellner).
+  Taken: base.css (rotator/shine/glare stack) + cards/regular-holo.css ("rare holo" layers).
+  Dropped: spring physics, svelte, glitter/grain sprites, art-window clip-paths, card backs.
+  Pointer tracking JS (sets the --pointer/--rotate/--background vars) lives inline in index.html.
+*/
+
+:root {
+  --card-aspect: 0.718;
+  --card-radius: 4.55% / 3.5%;
+  --card-edge: hsl(47, 100%, 78%);
+  --card-glow: hsl(175, 100%, 90%);
+  --red: #f80e35; --yellow: #eedf10; --green: #21e985; --blue: #0dbde9; --violet: #c929f1;
+}
+
+.card {
+  /* defaults = resting state; JS overrides these on pointermove */
+  --pointer-x: 50%; --pointer-y: 50%;
+  --rotate-x: 0deg; --rotate-y: 0deg;
+  --background-x: 50%; --background-y: 50%;
+  --card-opacity: 0;
+  width: 220px;
+  aspect-ratio: var(--card-aspect);
+  border-radius: var(--card-radius);
+  transform: translate3d(0, 0, 0.01px);
+  transform-style: preserve-3d;
+  perspective: 600px;
+}
+.card.water    { --card-glow: hsl(192, 97%, 60%); }
+.card.fire     { --card-glow: hsl(9,   81%, 59%); }
+.card.grass    { --card-glow: hsl(96,  81%, 65%); }
+.card.electric { --card-glow: hsl(54,  87%, 63%); }
+.card.psychic  { --card-glow: hsl(281, 62%, 58%); }
+.card.fighting { --card-glow: rgb(145, 90, 39); }
+
+.card__rotator {
+  display: grid;
+  width: 100%;
+  aspect-ratio: var(--card-aspect);
+  border-radius: var(--card-radius);
+  transform-origin: center;
+  transform-style: preserve-3d;
+  transform: rotateY(var(--rotate-x)) rotateX(var(--rotate-y));
+  will-change: transform, box-shadow;
+  outline: 1px solid transparent; /* anti-alias trick */
+  box-shadow: 0px 10px 20px -5px black, 0 2px 15px -5px black;
+  transition: box-shadow 0.4s ease;
+}
+.card.active .card__rotator {
+  box-shadow: 0 0 3px -1px white, 0 0 3px 1px var(--card-edge), 0 0 12px 2px var(--card-glow),
+    0px 10px 20px -5px black, 0 0 40px -30px var(--card-glow), 0 0 50px -20px var(--card-glow);
+}
+/* no springs: when the pointer leaves, ease back to rest with plain transitions */
+.card:not(.interacting) .card__rotator,
+.card:not(.interacting) .card__shine,
+.card:not(.interacting) .card__glare { transition: all 0.4s ease; }
+
+.card__rotator > * {
+  grid-area: 1 / 1;
+  width: 100%;
+  aspect-ratio: var(--card-aspect);
+  border-radius: var(--card-radius);
+  transform-style: preserve-3d;
+  overflow: hidden;
+}
+.card__front { transform: translate3d(0, 0, 0.01px); }
+.card__shine, .card__glare { pointer-events: none; will-change: transform, opacity, background-position; }
+
+/* ---- SHINE (rare holo): rainbow bands + scanlines, blended color-dodge ---- */
+.card__shine {
+  --scanlines-space: 1px; --scanlines-light: #666; --scanlines-dark: black;
+  --bars: 3%; --bar-color: hsla(0, 0%, 70%, 1); --bar-bg: hsla(0, 0%, 0%, 1);
+  display: grid;
+  transform: translateZ(1px);
+  z-index: 3;
+  opacity: calc(var(--card-opacity) * 0.7); /* dialed down from 1 so attack text stays readable while hovering */
+  background-image:
+    repeating-linear-gradient(110deg,
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red),
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red),
+      var(--violet), var(--blue), var(--green), var(--yellow), var(--red)),
+    repeating-linear-gradient(90deg,
+      var(--scanlines-dark) calc(var(--scanlines-space) * 0), var(--scanlines-dark) calc(var(--scanlines-space) * 2),
+      var(--scanlines-light) calc(var(--scanlines-space) * 2), var(--scanlines-light) calc(var(--scanlines-space) * 4));
+  background-position:
+    calc(((50% - var(--background-x)) * 2.6) + 50%) calc(((50% - var(--background-y)) * 3.5) + 50%),
+    center center;
+  background-size: 400% 400%, cover;
+  background-blend-mode: overlay;
+  filter: brightness(1.1) contrast(1.1) saturate(1.2);
+  mix-blend-mode: color-dodge;
+}
+.card__shine:before, .card__shine:after {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: var(--card-radius);
+}
+.card__shine:before {
+  transform: translateZ(1px);
+  background-image:
+    repeating-linear-gradient(90deg,
+      var(--bar-bg) calc(var(--bars) * 2), var(--bar-color) calc(var(--bars) * 3),
+      var(--bar-bg) calc(var(--bars) * 3.5), var(--bar-color) calc(var(--bars) * 4),
+      var(--bar-bg) calc(var(--bars) * 5), var(--bar-bg) calc(var(--bars) * 14)),
+    repeating-linear-gradient(90deg,
+      var(--bar-bg) calc(var(--bars) * 2), var(--bar-color) calc(var(--bars) * 3),
+      var(--bar-bg) calc(var(--bars) * 3.5), var(--bar-color) calc(var(--bars) * 4),
+      var(--bar-bg) calc(var(--bars) * 5), var(--bar-bg) calc(var(--bars) * 10));
+  background-position:
+    calc((((50% - var(--background-x)) * 1.65) + 50%) + (var(--background-y) * 0.5)) var(--background-x),
+    calc((((50% - var(--background-x)) * -0.9) + 50%) - (var(--background-y) * 0.75)) var(--background-y);
+  background-size: 200% 200%, 200% 200%;
+  background-blend-mode: screen;
+  filter: brightness(1.15) contrast(1.1);
+  mix-blend-mode: hard-light;
+}
+.card__shine:after {
+  transform: translateZ(1.2px);
+  background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(0, 0%, 90%, 0.8) 0%, hsla(0, 0%, 78%, 0.1) 25%, hsl(0, 0%, 0%) 90%);
+  background-size: cover;
+  mix-blend-mode: luminosity;
+  filter: brightness(0.6) contrast(4);
+}
+
+/* ---- GLARE: white spot that follows the pointer ---- */
+.card__glare {
+  display: grid;
+  transform: translateZ(1.41px);
+  opacity: calc(var(--card-opacity) * 0.8);
+  background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsla(0, 0%, 100%, 0.8) 10%, hsla(0, 0%, 100%, 0.65) 20%, hsla(0, 0%, 0%, 0.5) 90%);
+  filter: brightness(0.8) contrast(1.5);
+  mix-blend-mode: overlay;
+}
+.card__glare:after {
+  content: "";
+  grid-area: 1 / 1;
+  border-radius: var(--card-radius);
+  background-image: radial-gradient(farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    hsl(180, 100%, 95%) 5%, hsla(0, 0%, 39%, 0.25) 55%, hsla(0, 0%, 0%, 0.36) 110%);
+  mix-blend-mode: overlay;
+  filter: brightness(0.6) contrast(3);
+}

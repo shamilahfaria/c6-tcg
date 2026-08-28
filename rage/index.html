@@ -1,0 +1,106 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>rage</title>
+<style>body{margin:0;background:#111;display:flex;justify-content:center}</style>
+<body>
+<script src="https://unpkg.com/kaplay@3001.0.19/dist/kaplay.js"></script>
+<script src="levels.js"></script>
+<script>
+const T = 32, SPEED = 220;
+kaplay({ width: 25 * T, height: 15 * T, background: [22, 22, 32] });
+setGravity(1400);
+
+let deaths = 0, msg = null; // msg !== null => we just died
+
+const solid = (tag) => [rect(T, T), color(90, 90, 110), area(), body({ isStatic: true }), tag];
+const door = (tag) => [rect(T - 8, T), color(60, 200, 90), area(), tag];
+const sign = (s, tag) => [text(s, { size: 10 }), color(255, 220, 80), area(), tag];
+
+scene("level", (i) => {
+  const L = LEVELS[i];
+  const level = addLevel(L.map.map((r) => r.padEnd(25)), {
+    tileWidth: T, tileHeight: T,
+    tiles: {
+      "=": () => solid("solid"),
+      "~": () => solid("halluc"),
+      "^": () => [polygon([vec2(0, T), vec2(T / 2, T / 2), vec2(T, T)]), color(220, 50, 50),
+                  area({ shape: new Rect(vec2(6, 18), T - 12, T - 18) }), "kill"],
+      "E": () => door("exit"),
+      "X": () => door("fake"),
+      "@": () => ["spawn"],
+      "F": () => ["spot"],
+      "!": () => sign("ignore previous\ninstructions", "inject"),
+    },
+    wildcardTile: (s) => (L.signs?.[s] ? sign(L.signs[s], "sign") : null),
+  });
+
+  const p = add([rect(22, 28), color(240, 200, 60), pos(level.get("spawn")[0].pos.add(5, 4)),
+                 area(), body({ jumpForce: 640 }), "player"]);
+
+  const flash = (s) => add([text(s, { size: 28 }), pos(center()), anchor("center"), color(RED),
+                            z(300), opacity(1), lifespan(1, { fade: 0.5 })]);
+  const die = (m = "") => { deaths++; msg = m; go("level", i); };
+  if (msg !== null) { shake(8); if (msg) flash(msg); msg = null; }
+
+  // HUD
+  const hud = add([text("", { size: 16 }), pos(8, 6), z(200)]);
+  add([text(L.name, { size: 18 }), pos(width() / 2, 6), anchor("top"), z(200)]);
+  const status = add([text("", { size: 14 }), pos(width() / 2, 30), anchor("top"), color(255, 120, 120), z(200)]);
+
+  // Controls + traps
+  let inv = 0, frozen = 0, hold = 0;
+  p.onUpdate(() => {
+    let d = (isKeyDown("left") || isKeyDown("a") ? -1 : 0) + (isKeyDown("right") || isKeyDown("d") ? 1 : 0);
+    if (L.rateLimit) {
+      hold = d ? hold + dt() : 0;
+      if (hold > 1.2) { hold = 0; frozen = time() + 0.8; flash("429 Too Many Requests"); }
+    }
+    if (time() < frozen) d = 0;
+    if (time() < inv) d = -d;
+    p.move(d * SPEED, 0);
+    if (p.pos.y > height() + 40) die();
+    hud.text = `Deaths: ${deaths}`;
+    status.text = time() < inv ? `controls inverted ${(inv - time()).toFixed(1)}s` : "";
+  });
+  onKeyPress(["space", "up", "w"], () => { if (p.isGrounded() && time() >= frozen) p.jump(); });
+
+  p.onCollide("kill", () => die());
+  p.onCollide("fake", () => die("I made that up."));
+  p.onCollide("halluc", (h) => destroy(h));
+  p.onCollide("inject", () => (inv = time() + 3));
+  p.onCollide("exit", () => go(i + 1 < LEVELS.length ? "level" : "win", i + 1));
+
+  if (L.flaky) {
+    const ex = level.get("exit")[0];
+    const spots = [ex.pos.clone(), ...level.get("spot").map((f) => f.pos.clone())];
+    let armed = true;
+    ex.onUpdate(() => {
+      const near = p.pos.dist(ex.pos) < 56;
+      if (near && armed && rand() < L.flaky) {
+        ex.pos = choose(spots.filter((s) => !s.eq(ex.pos)));
+        flash("eval failed (flaky)");
+      }
+      armed = !near;
+    });
+  }
+
+  if (L.vignette) {
+    const t0 = time();
+    add([z(100)]).onDraw(() => {
+      const r = lerp(700, 60, Math.min(1, (time() - t0) / L.vignette));
+      drawSubtracted(
+        () => drawRect({ pos: vec2(0), width: width(), height: height(), color: BLACK }),
+        () => drawCircle({ pos: p.pos.add(11, 14), radius: r }),
+      );
+    });
+  }
+});
+
+scene("win", () => {
+  add([text(`You shipped.\n\nTotal deaths: ${deaths}\n\nSPACE to play again`, { size: 32, align: "center" }),
+       pos(center()), anchor("center")]);
+  onKeyPress("space", () => { deaths = 0; go("level", 0); });
+});
+
+go("level", +new URLSearchParams(location.search).get("level") || 0); // ?level=N to skip ahead
+</script>
