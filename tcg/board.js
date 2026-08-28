@@ -116,10 +116,12 @@ const arena = () => app.querySelector(".arena");
 
 function dropAt(e, kind) {
   const under = document.elementFromPoint(e.clientX, e.clientY), t = under && under.closest("[data-drop]");
-  if (!t) return null;
+  if (!t) return kind === "trainer" && under && under.closest(".board") && !under.closest(".hand") ? document.querySelector(".tzone") : null;
   if (kind === "energy") return t.dataset.drop === "card" ? t : null;
   if (kind === "person") return t.classList.contains("tgt") ? t : null;
-  return t.dataset.drop === "trainer" ? t : null;
+  if (t.dataset.drop === "trainer") return t;
+  // trainer dropped on a card/slot/felt: still a play, as long as it isn't back on the hand
+  return under.closest(".hand") ? null : (under.closest(".board") ? document.querySelector(".tzone") || t : null);
 }
 
 document.addEventListener("pointerdown", e => {

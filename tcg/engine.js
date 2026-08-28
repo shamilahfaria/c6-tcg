@@ -72,7 +72,10 @@ function playCard(i) {
   if (!myTurn()) return;
   const s = G.me, c = s.hand[i];
   if (c.sig) { if (!s.active) s.active = inst(c); else if (s.bench.length < 3) s.bench.push(inst(c)); else return; log(`You played ${c.name}.`); }
-  else if (!applyTrainer("me", c)) return;
+  else if (!applyTrainer("me", c)) {
+    log(c.kind === "supporter" && s.supporter ? "Only one Supporter per turn." : !s.active ? "Play a person first." : `${c.name} would do nothing right now.`);
+    render(); return;
+  }
   s.hand.splice(i, 1); render();
 }
 
