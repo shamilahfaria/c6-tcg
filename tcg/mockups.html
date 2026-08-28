@@ -18,8 +18,8 @@
   .lbl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #8f8b80; margin: 14px 0 4px; text-align: center; }
   /* variants: only the family + name weight change; card.css is otherwise untouched */
   .v-nunito .card, .v-nunito .trainer { font-family: Nunito, system-ui, sans-serif; }
-  .v-gill .card, .v-gill .trainer { font-family: "Gill Sans", "Gill Sans MT", Cabin, sans-serif; } .v-gill .nm, .v-gill .hp, .v-gill .atk b { font-weight: 700; }
-  .v-cabin .card, .v-cabin .trainer { font-family: Cabin, "Gill Sans", sans-serif; } .v-cabin .nm, .v-cabin .hp, .v-cabin .atk b { font-weight: 700; }
+  .v-gill .card, .v-gill .trainer { font-family: "Gill Sans", "Gill Sans MT", Cabin, sans-serif; } .v-gill :is(.card, .trainer) :is(.nm, .hp, .atk b, .atkn, .basic, .kind, .tl, .ft, .type, .rr, b, strong, small) { font-weight: 700; } /* Gill Sans 800+ maps to Ultra Bold on macOS */
+  .v-cabin .card, .v-cabin .trainer { font-family: Cabin, "Gill Sans", sans-serif; } .v-cabin :is(.card, .trainer) :is(.nm, .hp, .atk b, .atkn, .basic, .kind, .tl, .ft, .type, .rr, b, strong, small) { font-weight: 700; }
   .v-source .card, .v-source .trainer { font-family: "Source Sans 3", system-ui, sans-serif; } .v-source .nm, .v-source .hp, .v-source .atk b { font-weight: 900; }
   .v-jost .card, .v-jost .trainer { font-family: Jost, system-ui, sans-serif; } .v-jost .nm, .v-jost .hp, .v-jost .atk b { font-weight: 700; letter-spacing: 0; }
   .v-lato .card, .v-lato .trainer { font-family: Lato, system-ui, sans-serif; } .v-lato .nm, .v-lato .hp, .v-lato .atk b { font-weight: 900; }
