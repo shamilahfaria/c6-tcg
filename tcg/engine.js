@@ -106,10 +106,12 @@ function attack(i) {
 function resolve(who, m) {
   const A = G[who], D = G[other(who)], a = A.active, d = D.active;
   if (!a || !d) return;
-  if (m.flip) { const heads = Math.random() < .5; FX.coin(heads); if (!heads) { log(`${a.name} used ${m.name}... tails. Nothing happens.`); return; } }
+  let flipped = false;
+  if (m.flip) { const heads = Math.random() < .5; FX.coin(heads); flipped = true; if (!heads) { log(`${a.name} used ${m.name}... tails. Nothing happens.`); return; } }
   const r = damage(a, d, m, A.bonus), dmg = Math.max(0, r.dmg - (D.shield || 0)); d.hp = Math.max(0, d.hp - dmg);
   log(`${a.name} used ${m.name}! ${r.weak ? "Weakness, +20! " : ""}${A.bonus ? "+10! " : ""}${D.shield ? "Shielded, -20. " : ""}${dmg} damage.`);
-  FX.hit(cardEl(d), dmg, { weak: r.weak, shield: !!D.shield }); FX.play(r.weak ? "super" : "hit");
+  const showHit = () => { FX.hit(cardEl(d), dmg, { weak: r.weak, shield: !!D.shield }); FX.play(r.weak ? "super" : "hit"); };
+  flipped ? setTimeout(showHit, 1100) : showHit();
   if (m.self) a.hp = Math.max(0, a.hp - m.self);
   if (m.heal) a.hp = Math.min(a.max, a.hp + m.heal);
   if (d.hp === 0) ko(other(who), who);
@@ -146,8 +148,8 @@ function applyTrainer(who, t) {
     case "draw5": ok = s.deck.length > 0 && s.hand.length < 6; draw(s, Math.max(0, 5 - (s.hand.length - 1))); break;
     case "plus10": s.bonus = 10; break;
     case "shield": s.shield = 20; break;
-    case "energy": give(1); break;
-    case "flipEnergy": { let n = 0; while (Math.random() < .5) n++; give(n); note = ` ${n} heads.`; break; }
+    case "energy": give(1); FX.energy(cardEl(s.active)); break;
+    case "flipEnergy": { let n = 0; while (Math.random() < .5) n++; give(n); note = ` ${n} heads.`; if (n) FX.energy(cardEl(s.active)); break; }
     case "moveEnergy": ok = s.bench.some(c => c.energy.length); s.bench.forEach(c => { if (c.energy.length) s.active.energy.push(c.energy.pop()); }); break;
     case "sabrina": { if (!o.bench.length) { ok = false; break; } const i = Math.floor(Math.random() * o.bench.length); [o.active, o.bench[i]] = [o.bench[i], o.active]; note = ` ${o.active.name} is dragged in.`; break; }
     case "redcard": { o.deck = shuffle(o.deck.concat(o.hand)); o.hand = []; draw(o, 3); break; }
