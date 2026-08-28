@@ -76,7 +76,7 @@ function render() {
   const apanel = panel ? `<div class="apanel" onclick="if(event.target===this){UI.panel=-1;UI.retreat=false;render()}"><div class="ap">
     <div class="big static">${cardHTML(me.active, { inplay: true })}</div>
     <div class="acts">${mine ? "" : `<div class="wait">Opponent's turn…</div>`}
-      ${moves(me.active).map((m, i) => { const ok = mine && canPay(me.active, m.cost); return `<button class="pill atkpill" ${ok ? `onclick="UI.panel=-1;attack(${i})"` : "disabled"} style="display:flex;align-items:center;gap:10px;width:300px;text-align:left;padding:10px 14px;${ok ? "" : "opacity:.45;cursor:default"}">
+      ${moves(me.active).map((m, i) => { const ok = mine && canPay(me.active, m.cost); return `<button class="pill atkpill" ${ok ? `onclick="UI.panel=-1;attack(${i})"` : "disabled"} style="display:flex;align-items:center;gap:10px;text-align:left;padding:10px 14px;${ok ? "" : "opacity:.45;cursor:default"}">
         <span class="cost" style="font-size:16px">${costPips(me.active, m.cost)}</span><span style="flex:1"><b style="font-size:17px">${m.name}</b>${m.flip || m.text || m.self ? `<small style="display:block;font-size:11px;opacity:.75">${[m.flip ? "coin flip" : "", m.self ? `recoil ${m.self}` : "", m.text || ""].filter(Boolean).join(" · ")}</small>` : ""}</span><b style="font-size:22px">${m.dmg}</b></button>`; }).join("")}
       ${me.active ? `<button class="pill sm" ${canRetreat ? `onclick="UI.retreat=!UI.retreat;render()"` : "disabled"} style="${canRetreat ? "" : "opacity:.45;cursor:default"}" title="${!mine ? "Not your turn" : me.retreated ? "Already retreated this turn" : !me.bench.length ? "No benched card to switch to" : me.active.energy.length < rc ? "Not enough energy" : "Retreat"}">Retreat ${rc ? Array.from({ length: rc }, (_, i) => `<span style="${i < me.active.energy.length ? "" : "opacity:.28;filter:grayscale(1)"}">${pip()}</span>`).join("") : "· free"}</button>` : ""}
       ${UI.retreat ? `<div class="chooser"><small>Who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;UI.panel=-1;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
@@ -103,7 +103,17 @@ function render() {
 
 function fit() { // scale the 1280×720 design to the window; the arena fills the viewport in logical px and centres the stage
   const a = app.querySelector(".arena"); if (!a) return;
-  const z = Math.min(innerWidth / 1280, innerHeight / 720, 1.5);
+  const mob = innerWidth < 900 && innerHeight > innerWidth;
+  a.classList.toggle("mobile", mob);
+  let z;
+  if (mob) { // phone portrait: the stadium's middle ~440 board px fill the width; 100px top bar + board + 160px hand strip fill the height.
+    // --vw/--vh/--vt = viewport width / usable bottom / top inset in board px; the .mobile CSS anchors the chrome with them.
+    const cs = getComputedStyle(a), sat = parseFloat(cs.getPropertyValue("--sat")) || 0, sab = parseFloat(cs.getPropertyValue("--sab")) || 0;
+    z = Math.min(innerWidth / 440, (innerHeight - sat - sab) / 980);
+    a.style.setProperty("--vw", innerWidth / z + "px");
+    a.style.setProperty("--vh", (innerHeight - sab) / z + "px");
+    a.style.setProperty("--vt", sat / z + "px");
+  } else z = Math.min(innerWidth / 1280, innerHeight / 720, 1.5);
   a.style.zoom = z; a.style.width = innerWidth / z + "px"; a.style.height = innerHeight / z + "px";
 }
 addEventListener("resize", fit);
@@ -119,9 +129,8 @@ function dropAt(e, kind) {
   if (!t) return kind === "trainer" && under && under.closest(".board") && !under.closest(".hand") ? document.querySelector(".tzone") : null;
   if (kind === "energy") return t.dataset.drop === "card" ? t : null;
   if (kind === "person") return t.classList.contains("tgt") ? t : null;
-  if (t.dataset.drop === "trainer") return t;
-  // trainer dropped on a card/slot/felt: still a play, as long as it isn't back on the hand
-  return under.closest(".hand") ? null : (under.closest(".board") ? document.querySelector(".tzone") || t : null);
+  // trainers: any drop on the board that isn't back on the hand counts as "toward the centre"
+  return under.closest(".hand") ? null : (under.closest(".arena") ? (document.querySelector(".tzone") || t) : null);
 }
 
 document.addEventListener("pointerdown", e => {
@@ -129,6 +138,7 @@ document.addEventListener("pointerdown", e => {
   if (!el || e.button !== 0 || e.target.closest("button")) return;
   const r = el.getBoundingClientRect();
   D = { el, kind: el.dataset.drag, i: +el.dataset.i, x0: e.clientX, y0: e.clientY, left: r.left, top: r.top, z: zoomOf(el), ghost: null, over: null };
+  try { e.target.setPointerCapture(e.pointerId); } catch {} // capture the deepest target so touch keeps streaming moves and a tap still clicks the card's own handler
 });
 
 document.addEventListener("pointermove", e => {
@@ -136,7 +146,6 @@ document.addEventListener("pointermove", e => {
   const dx = e.clientX - D.x0, dy = e.clientY - D.y0;
   if (!D.ghost) {
     if (Math.hypot(dx, dy) < 6) return;
-    try { D.el.setPointerCapture(e.pointerId); } catch {}
     D.ghost = document.createElement("div"); D.ghost.className = "ghost";
     D.ghost.style.cssText = `left:${D.left}px;top:${D.top}px`;
     D.ghost.innerHTML = `<div style="zoom:${D.z}">${D.kind === "energy" ? D.el.outerHTML : D.el.innerHTML}</div>`;
@@ -152,9 +161,9 @@ function endDrag(e, ok) {
   const d = D; D = null;
   if (!d || !d.ghost) return; // no drag happened: the click event does the work
   swallow = true; setTimeout(() => swallow = false, 150);
+  const t = ok && document.contains(d.el) && dropAt(e, d.kind); // resolve BEFORE removing .drag-* (which hides the drop zones)
   arena()?.classList.remove("drag", "drag-person", "drag-trainer", "drag-energy");
   d.over?.classList.remove("hov");
-  const t = ok && document.contains(d.el) && dropAt(e, d.kind);
   if (!t) { // snap back
     d.ghost.classList.add("back"); d.ghost.style.transform = "translate(0,0)";
     setTimeout(() => { d.ghost.remove(); d.el.classList.remove("lifted"); }, 200);

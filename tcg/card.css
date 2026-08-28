@@ -6,7 +6,7 @@
 .pickable { cursor: pointer; }
 .n { position: absolute; top: -10px; left: -10px; width: 28px; height: 28px; border-radius: 50%; background: #ffcc33; color: #000; display: grid; place-items: center; z-index: 9; }
 
-.card, .trainer { position: relative; font-family: Fredoka, Lato, "Gill Sans", system-ui, sans-serif; color: #1c1c1c; text-align: left; }
+.card, .trainer { position: relative; font-family: Jost, "Trebuchet MS", system-ui, sans-serif; color: #1c1c1c; text-align: left; }
 /* frame = soft pastel of the type color (--f1/--f2), thin darker edge = --c2 */
 .card { --f1: color-mix(in srgb, var(--c1) 80%, #fff); --f2: color-mix(in srgb, var(--c2) 45%, #fff); }
 .card.fire     { --c1: #ffb26b; --c2: #e0442e; }
@@ -54,7 +54,7 @@
 .atks { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; gap: 2px; }
 .atk { display: flex; align-items: center; gap: 5px; width: 100%; box-sizing: border-box; padding: 1px 4px; border: 0; border-radius: 4px; background: #fffd; box-shadow: 0 0 0 1px #0001; font: inherit; color: inherit; text-align: left; }
 .atk .cost { display: flex; gap: 1px; flex: none; min-width: 14px; }
-.atk .atkn { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; }
+.atk .atkn { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; line-height: 1.1; white-space: nowrap; overflow: hidden; letter-spacing: -.2px; }
 .atk small { display: block; font-size: 8.5px; font-weight: 600; color: #444; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .atk small .pip { width: 10px; height: 10px; font-size: 7px; margin-right: 2px; }
 .atk b { flex: none; font-size: 20px; font-weight: 700; line-height: 1; }
@@ -99,7 +99,7 @@ button.atk:disabled { opacity: .5; cursor: default; }
 .card.back .face { border: 1.5px solid #c9a227; border-radius: 8px; padding: 0; background: #0b0b0d; display: grid; place-items: center; box-shadow: inset 0 0 0 2px #000, inset 0 0 40px #000; }
 .card.back img { width: 56%; filter: drop-shadow(0 3px 8px #000); }
 
-.typepick button { font: 18px Lato, "Gill Sans", system-ui; margin: 6px; padding: 12px 18px; border-radius: 10px; border: 3px solid transparent; background: #2a2f3a; color: #eee; cursor: pointer; }
+.typepick button { font: 18px Jost, system-ui; margin: 6px; padding: 12px 18px; border-radius: 10px; border: 3px solid transparent; background: #2a2f3a; color: #eee; cursor: pointer; }
 .typepick button.on { border-color: #ffcc33; background: #3a3520; }
 
 /* the set/rarity line only matters in the binder; in play and in hand the art gets the room */

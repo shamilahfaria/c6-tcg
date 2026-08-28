@@ -94,7 +94,8 @@ document.addEventListener("pointerout", e => {
     el.dataset.fit = "1";
     const z = parseFloat(getComputedStyle(el).fontSize) || 14;
     const tooWide = () => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && el.scrollWidth > el.clientWidth + 0.5;
-    for (let s = z; s >= 7 && tooWide(); s -= 0.5) el.style.fontSize = s + "px";
+    for (let s = z; s >= 6 && tooWide(); s -= 0.5) el.style.fontSize = s + "px";
+    if (tooWide()) el.style.letterSpacing = "-0.4px";
   });
   new MutationObserver(() => requestAnimationFrame(fit)).observe(document.documentElement, { childList: true, subtree: true });
   document.fonts?.ready.then(() => { document.querySelectorAll(".nm[data-fit], .atkn[data-fit]").forEach(el => { delete el.dataset.fit; el.style.fontSize = ""; }); fit(); });
