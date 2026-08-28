@@ -208,3 +208,47 @@ body { margin: 0; padding: 10px 10px 40px; background: #0e1016; color: #f3efe4; 
   .mobile .over .panel { min-width: 0; width: calc(var(--vw) - 48px); box-sizing: border-box; padding: 22px 18px; }
   .mobile .over h1 { font-size: 34px; }
 }
+
+/* ---------- Pokémon-style finale: Victory/Defeat splash + results ---------- */
+.over.splash { display: grid; place-items: center; z-index: 60; cursor: pointer; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 40%, #2a2410 0%, #12100a 55%, #0a0a0e 100%); }
+.over.splash.lose { background: radial-gradient(120% 90% at 50% 40%, #1a1c24 0%, #0e0f14 60%, #08090c 100%); }
+/* slow rotating light rays behind the card */
+.over.splash .rays { position: absolute; width: 200vmax; height: 200vmax; z-index: 0; opacity: .5;
+  background: repeating-conic-gradient(from 0deg, #e3c25a22 0deg 6deg, transparent 6deg 14deg);
+  animation: rays 26s linear infinite; }
+.over.splash.lose .rays { opacity: .12; background: repeating-conic-gradient(from 0deg, #ffffff18 0deg 6deg, transparent 6deg 14deg); }
+@keyframes rays { to { transform: rotate(360deg); } }
+.over.splash .vhead { position: relative; z-index: 2; font: 900 clamp(44px, 9vw, 92px)/1 Jost, system-ui; letter-spacing: .02em;
+  color: #fff; text-shadow: 0 3px 0 #b8891c, 0 6px 22px #000b, 0 0 34px #e3c25a88; margin-bottom: 10px;
+  background: linear-gradient(#fff6d8, #e3c25a 60%, #b8891c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: vpop .5s cubic-bezier(.2,1.3,.4,1) both; }
+.over.splash.lose .vhead { background: linear-gradient(#eef, #9aa0ad 60%, #5c626e); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 3px 18px #000a; }
+@keyframes vpop { from { opacity: 0; transform: scale(.6) translateY(10px); } }
+.over.splash .vcard { position: relative; z-index: 2; zoom: 1.15; filter: drop-shadow(0 20px 40px #000c) drop-shadow(0 0 26px #e3c25a66);
+  animation: vfloat 4s ease-in-out infinite, vpop .55s .05s cubic-bezier(.2,1.3,.4,1) both; }
+.over.splash.lose .vcard { filter: drop-shadow(0 20px 40px #000c) grayscale(.5) brightness(.85); }
+@keyframes vfloat { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-10px) rotate(1deg); } }
+.over.splash .vtap { position: absolute; bottom: 6%; z-index: 2; color: #d8cfa8; font: 700 15px Jost, system-ui; letter-spacing: .12em; text-transform: uppercase; animation: vblink 1.4s ease-in-out infinite; }
+@keyframes vblink { 50% { opacity: .35; } }
+
+.over.results .panel { max-width: 460px; width: 92%; padding: 22px 22px 18px; text-align: center; }
+.over.results .rtitle { font: 900 34px/1 Jost, system-ui; margin-bottom: 6px;
+  background: linear-gradient(#fff6d8, #e3c25a 60%, #b8891c); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.over.results.lose .rtitle { background: linear-gradient(#eef, #8b90a0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.over.results .score { color: #f3efe4; font: 700 15px Jost, system-ui; margin-bottom: 14px; display: flex; gap: 8px; align-items: center; justify-content: center; }
+.over.results .cog { position: relative; display: inline-block; margin: 4px auto 14px; }
+.over.results .cog small { display: block; color: #e3c25a; font: 800 11px Jost; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+.over.results .cogcard { zoom: .82; filter: drop-shadow(0 10px 20px #000a) drop-shadow(0 0 16px #e3c25a55); }
+/* gold laurel around the card of the game */
+.over.results .cog::before, .over.results .cog::after { content: "\\1F33F"; position: absolute; bottom: 18%; font-size: 46px; opacity: .9; filter: sepia(1) saturate(3) hue-rotate(5deg) brightness(1.1); }
+.over.results .cog::before { left: -6px; transform: scaleX(-1); }
+.over.results .cog::after { right: -6px; }
+.over.results .rtable { text-align: left; margin: 0 auto 16px; max-width: 320px; }
+.over.results .rrow { display: flex; justify-content: space-between; padding: 7px 2px; border-bottom: 1px solid #ffffff14; font: 600 13px Jost, system-ui; color: #b9b4a6; }
+.over.results .rrow b { color: #f3efe4; font-weight: 800; }
+.over.results .racts { display: flex; gap: 10px; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .over.splash .rays, .over.splash .vcard, .over.splash .vhead, .over.splash .vtap { animation: none; } }
+/* fully opaque finale backdrops so the board never bleeds through */
+.over.results { background: #0a0b0f; }
+.over.results .cogcard .hpf, .over.results .cogcard .en { display: none; }

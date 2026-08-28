@@ -136,8 +136,11 @@ function ko(loserWho, scorerWho) {
   const L = G[loserWho], S = G[scorerWho], c = L.active;
   FX.ko(cardEl(c)); FX.play("ko");
   L.discard.push(c); L.active = null; S.points += points(c);
-  log(`${c.name} is knocked out! ${name(scorerWho)} get${scorerWho === "me" ? "" : "s"} ${points(c)} point${points(c) > 1 ? "s" : ""}.`);
+  S.mvp = S.active; // whoever landed the KO is the running "Card of the Game"
+  const gained = points(c);
+  log(`${c.name} is knocked out! ${name(scorerWho)} get${scorerWho === "me" ? "" : "s"} ${gained} point${gained > 1 ? "s" : ""}.`);
   if (S.points >= 3) return gameOver(scorerWho, "3 points");
+  try { FX.banner(`+${gained} point${gained > 1 ? "s" : ""}!`); } catch {} // Pocket-style point beat on every non-winning KO
   if (!L.bench.length) return gameOver(scorerWho, `${name(loserWho).toLowerCase()} ${loserWho === "me" ? "have" : "has"} no cards left`);
   if (loserWho === "op") { L.bench.sort((x, y) => y.hp - x.hp); L.active = L.bench.shift(); log(`${L.active.name} steps in.`); }
   else G.phase = "promote";
@@ -176,7 +179,15 @@ function applyTrainer(who, t) {
   return true;
 }
 
-function gameOver(who, why) { G.phase = "over"; G.winner = who; G.why = why; try { FX.music.stop(); } catch {} render(); }
+function gameOver(who, why) {
+  G.phase = "over"; G.winner = who; G.why = why;
+  const W = G[who]; G.mvp = (W && (W.active || W.mvp)) || G.mvp || null; // Card of the Game = the winner's standing card
+  G.turnsPlayed = G.turn;
+  UI.endStep = null; // hold on the frozen final board so the last KO registers…
+  try { FX.music.stop(); } catch {}
+  render();
+  setTimeout(() => { UI.endStep = "splash"; try { FX.victory(who === "me"); } catch {} render(); }, 1500); // …then the Victory/Defeat splash
+}
 
 
 function aiTurn() {

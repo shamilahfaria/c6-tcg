@@ -3,7 +3,7 @@
 // Layout mirrors Pokémon TCG Pocket's battle screen, vertically stacked (opp hand → opp bench → opp active → centre → my active → my bench → my hand)
 // inside a 1280×720 .board; the .arena is zoomed to fit the window (fit()).
 const app = document.getElementById("app");
-const UI = { arm: false, panel: -1, retreat: false, menu: false }; // board-only state. panel = the G.turn it was opened on, so it closes itself next turn
+const UI = { arm: false, panel: -1, retreat: false, menu: false, endStep: null }; // board-only state. panel = the G.turn it was opened on, so it closes itself next turn
 
 const back = () => typeof cardBackHTML === "function" ? cardBackHTML("") : `<div class="back"></div>`;
 const stack = (s, cls) => `<div class="deck ${cls}"><div class="cw">${back()}</div><div class="cw">${back()}</div><div class="cw">${back()}</div><b>${s.deck.length}</b></div>`;
@@ -39,6 +39,32 @@ function costPips(card, cost) {
   const wrap = (html, ok) => `<span style="${ok ? "" : "opacity:.28;filter:grayscale(1)"}">${html}</span>`;
   return Array.from({ length: t }, (_, i) => wrap(pip(card.type), i < paidT)).join("") + Array.from({ length: c }, (_, i) => wrap(pip(), i < paidC)).join("");
 }
+// Pokémon-style finale: a Victory/Defeat splash with the deciding card, then a results screen.
+function ending(me, op) {
+  const win = G.winner === "me";
+  const mvp = G.mvp;
+  if (UI.endStep === "splash") {
+    return `<div class="over splash ${win ? "win" : "lose"}" onclick="UI.endStep='results';render()">
+      <div class="rays"></div><div class="spark"></div>
+      <div class="vhead">${win ? "VICTORY!" : "DEFEAT"}</div>
+      ${mvp ? `<div class="vcard">${cardHTML(mvp, { full: true })}</div>` : ""}
+      <div class="vtap">Tap to continue</div></div>`;
+  }
+  const row = (k, v) => `<div class="rrow"><span>${k}</span><b>${v}</b></div>`;
+  return `<div class="over results ${win ? "win" : "lose"}"><div class="panel">
+    <div class="rtitle">${win ? "Victory!" : "Defeat"}</div>
+    <div class="score">You ${pts(me.points)} &nbsp;vs&nbsp; Opponent ${pts(op.points)}</div>
+    ${mvp ? `<div class="cog"><small>Card of the Game</small><div class="cogcard">${cardHTML(mvp, { full: true })}</div></div>` : ""}
+    <div class="rtable">
+      ${row("Turn order", G.first === "me" ? "You went first" : "Opponent went first")}
+      ${row("Turns played", G.turnsPlayed || G.turn)}
+      ${row("Your points", `${me.points} / 3`)}
+      ${row("Opponent points", `${op.points} / 3`)}
+    </div>
+    <div class="racts"><button class="pill go" onclick="typePick()">Play again</button><button class="pill sm" onclick="binder()">Binder</button></div>
+  </div></div>`;
+}
+
 function render() {
   const me = G.me, op = G.op, mine = myTurn(), setup = G.phase === "setup", promo = G.phase === "promote";
   const canAttach = mine && me.energyNext && !me.attached;
@@ -82,9 +108,7 @@ function render() {
       ${UI.retreat ? `<div class="chooser"><small>Who steps in?</small>${me.bench.map((c, i) => `<div class="cw" onclick="UI.retreat=false;UI.panel=-1;retreat(${i})">${cardHTML(c)}</div>`).join("")}</div>` : ""}
       <button class="pill sm" onclick="UI.panel=-1;UI.retreat=false;render()">Close</button></div></div></div>` : "";
 
-  const over = G.phase === "over" ? `<div class="over"><div class="panel"><h1>${G.winner === "me" ? "You win!" : "You lose."}</h1>
-    <p>You ${pts(me.points)} &nbsp;·&nbsp; Opponent ${pts(op.points)}</p><p class="why">${G.why}. ${G.log.at(-1) || ""}</p>
-    <p><button class="pill" onclick="typePick()">Play again</button> &nbsp; <button class="pill sm" onclick="binder()">Binder</button></p></div></div>` : "";
+  const over = G.phase === "over" && UI.endStep ? ending(me, op) : "";
 
   // knockout: an unmissable chooser — the bench cards are the buttons
   const ppanel = promo && !me.active ? `<div class="apanel promote"><div class="ap"><div class="acts">

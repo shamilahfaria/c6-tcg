@@ -1,5 +1,5 @@
 // Visual + audio effects. Owned by the FX work. Every function is fire-and-forget and must never throw.
-// Engine calls: FX.banner(text) FX.coin(heads, label?) FX.draw(fromEl, toEl) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
+// Engine calls: FX.banner(text) FX.coin(heads, label?) FX.draw(fromEl, toEl) FX.victory(win) FX.hit(el, dmg, {weak, shield}) FX.ko(el) FX.energy(el) FX.play(name)
 // All visuals are overlays appended to <body>, positioned from the target's rect at call time: the engine re-renders #app right after.
 (() => {
   const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -120,7 +120,20 @@
     const c = w.firstElementChild; if (c && c.classList) { c.style.zoom = ""; const cr = c.getBoundingClientRect(); if (cr.width) c.style.transform = `scale(${a.width / cr.width})`; c.style.transformOrigin = "0 0"; }
     FX.play("click");
   });
+
+  // victory finale: a burst of gold sparkles rising across the screen (win) or a quiet grey settle (loss)
+  const VICTORY = safe(win => {
+    const layer = spawn("fx-victory " + (win ? "win" : "lose"), "", 3200, {});
+    const n = win ? 46 : 14;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement("i");
+      const size = 4 + Math.random() * 8, x = Math.random() * 100, delay = Math.random() * 900, dur = 1400 + Math.random() * 1400;
+      s.style.cssText = `left:${x}%;bottom:-20px;width:${size}px;height:${size}px;animation-delay:${delay}ms;animation-duration:${dur}ms`;
+      layer.appendChild(s);
+    }
+  });
   window.FX = {
+    victory: VICTORY,
     draw: DRAW,
     music: MUSIC,
     banner: safe(text => {
