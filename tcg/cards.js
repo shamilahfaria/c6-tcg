@@ -48,7 +48,7 @@ window.CARDS = [
     sig: { name: "Enterprise Standards", cost: { t: 1, c: 1 }, dmg: 50 },
     flavor: "Ex-AmEx UI lead. Now teaches justice-involved students to ship." },
   { id: "shamilah-faria", name: "Shamilax", real: "Shamilah Faria", photo: "photos/shamilah-faria.jpg", type: "electric", hp: 90,
-    sig: { name: "Ship at 3:47 AM", cost: { t: 2, c: 1 }, dmg: 90, flip: true, self: 20, text: "Also hits yourself for 20." },
+    sig: { name: "Ship It Anyway", cost: { t: 2, c: 1 }, dmg: 80, flip: true, text: "Reads the error message later." },
     flavor: "Event-driven architecture. Event-driven sleep schedule. Built this game." },
   { id: "rodolfo-rodriguez", name: "Rodolform", real: "Rodolfo Rodriguez", photo: "photos/rodolfo-rodriguez.jpg", type: "electric", hp: 100,
     sig: { name: "Cut Cloud Costs 100x", cost: { t: 2 }, dmg: 60, text: "Literally one click." },
