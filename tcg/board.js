@@ -139,7 +139,7 @@ document.addEventListener("pointermove", e => {
   }
   D.ghost.style.transform = `translate(${dx}px,${dy}px)`;
   const t = dropAt(e, D.kind);
-  if (t !== D.over) { D.over?.classList.remove("over"); D.over = t; t?.classList.add("over"); }
+  if (t !== D.over) { D.over?.classList.remove("hov"); D.over = t; t?.classList.add("hov"); }
 });
 
 function endDrag(e, ok) {
@@ -147,7 +147,7 @@ function endDrag(e, ok) {
   if (!d || !d.ghost) return; // no drag happened: the click event does the work
   swallow = true; setTimeout(() => swallow = false, 150);
   arena()?.classList.remove("drag", "drag-person", "drag-trainer", "drag-energy");
-  d.over?.classList.remove("over");
+  d.over?.classList.remove("hov");
   const t = ok && document.contains(d.el) && dropAt(e, d.kind);
   if (!t) { // snap back
     d.ghost.classList.add("back"); d.ghost.style.transform = "translate(0,0)";
