@@ -71,12 +71,13 @@ function cardBackHTML(cls = "") {
 }
 
 document.addEventListener("pointermove", e => {
+  if (document.querySelector(".arena.drag")) return; // no holo tilt mid-drag — it fought the drag
   const c = e.target.closest(".card"); if (!c || c.closest(".static")) return; // .static: no holo tilt (attack panel)
   const r = c.getBoundingClientRect();
   const x = Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100));
   const y = Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100));
   c.classList.add("interacting");
-  c.style.cssText = `--pointer-x:${x}%;--pointer-y:${y}%;--rotate-x:${-(x - 50) / 3.5}deg;--rotate-y:${(y - 50) / 3.5}deg;` +
+  c.style.cssText = `--pointer-x:${x}%;--pointer-y:${y}%;--rotate-x:${-(x - 50) / 6}deg;--rotate-y:${(y - 50) / 6}deg;` +
     `--background-x:${37 + x * .26}%;--background-y:${33 + y * .34}%;--card-opacity:1`;
 });
 

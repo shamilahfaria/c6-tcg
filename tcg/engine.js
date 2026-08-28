@@ -49,7 +49,7 @@ function resetSetup() { // setup phase only: return every placed person to the h
   s.active = null; s.bench = [];
   render();
 }
-function begin() { G.phase = "play"; try { FX.music.start(); } catch {} beginTurn(G.first); }
+function begin() { G.phase = "play"; beginTurn(G.first); } // music intentionally NOT auto-started (awaiting approved track)
 
 
 function beginTurn(who) {

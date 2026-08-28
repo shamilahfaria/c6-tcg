@@ -45,7 +45,7 @@
   will-change: transform, box-shadow;
   outline: 1px solid transparent; /* anti-alias trick */
   box-shadow: 0px 10px 20px -5px black, 0 2px 15px -5px black;
-  transition: box-shadow 0.4s ease;
+  transition: transform 0.12s ease-out, box-shadow 0.4s ease;
 }
 .card.active .card__rotator {
   box-shadow: 0 0 3px -1px white, 0 0 3px 1px var(--card-edge), 0 0 12px 2px var(--card-glow),

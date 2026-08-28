@@ -138,7 +138,7 @@ document.addEventListener("pointerdown", e => {
   if (!el || e.button !== 0 || e.target.closest("button")) return;
   const r = el.getBoundingClientRect();
   D = { el, kind: el.dataset.drag, i: +el.dataset.i, x0: e.clientX, y0: e.clientY, left: r.left, top: r.top, z: zoomOf(el), ghost: null, over: null };
-  try { e.target.setPointerCapture(e.pointerId); } catch {} // capture the deepest target so touch keeps streaming moves and a tap still clicks the card's own handler
+  if (e.pointerType === "touch") { try { el.setPointerCapture(e.pointerId); } catch {} } // capture only for touch (keeps the move stream on phones); desktop drags as before
 });
 
 document.addEventListener("pointermove", e => {
